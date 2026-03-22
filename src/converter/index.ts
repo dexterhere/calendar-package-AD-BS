@@ -13,10 +13,11 @@ export type { BSDate, DualDate }
 export function today(): DualDate {
   const ad = new Date()
   const bs = adToBs(ad)
+  // getUTCDay() for weekday — consistent with the UTC-based date system used throughout
   return {
     bs,
     ad,
-    weekday: getWeekdayName(ad.getDay()),
+    weekday: getWeekdayName(ad.getUTCDay()),
     monthName: getMonthName(bs.month),
   }
 }

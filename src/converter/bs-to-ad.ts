@@ -1,34 +1,33 @@
 import type { BSDate } from './types.js'
-import { validateBSDate, BS_EPOCH, daysBetween } from './utils.js'
-import { getMonthLengths } from '../data/bs-month-lengths.js'
+import { validateBSDate, BS_EPOCH_UTC_MS, MS_PER_DAY, utcMsToDate } from './utils.js'
+import {
+  yearDayOffsets,
+  monthDayOffsets,
+  BS_DATA_YEAR_MIN,
+} from '../data/bs-month-lengths.js'
 
 /**
  * Converts a Bikram Sambat date to a JavaScript Date (Gregorian/AD).
- * Throws RangeError if the date is outside the supported range or invalid.
+ *
+ * The returned Date is set to UTC midnight of the corresponding Gregorian date.
+ * Always read the result using getUTCFullYear / getUTCMonth / getUTCDate to
+ * avoid timezone-dependent off-by-one errors.
+ *
+ * Complexity: O(1) — uses precomputed cumulative day-offset tables.
+ * Throws RangeError for invalid or out-of-range inputs.
  */
 export function bsToAd(bsDate: BSDate): Date {
   validateBSDate(bsDate)
 
-  // Count total days from BS 2000 Baishakh 1 to the given BS date
-  let totalDays = 0
+  const yi = bsDate.year - BS_DATA_YEAR_MIN
+  const mi = bsDate.month - 1
 
-  for (let y = 2000; y < bsDate.year; y++) {
-    const lengths = getMonthLengths(y)
-    totalDays += lengths.reduce((sum, len) => sum + len, 0)
-  }
+  // Total days from epoch to this BS date:
+  //   days to start of year  +  days to start of month within year  +  (day - 1)
+  const totalDays =
+    (yearDayOffsets[yi] as number) +
+    (monthDayOffsets[yi * 12 + mi] as number) +
+    bsDate.day - 1
 
-  const monthLengths = getMonthLengths(bsDate.year)
-  for (let m = 1; m < bsDate.month; m++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    totalDays += monthLengths[m - 1]!
-  }
-
-  totalDays += bsDate.day - 1
-
-  const adDate = new Date(BS_EPOCH)
-  adDate.setDate(adDate.getDate() + totalDays)
-  return adDate
+  return utcMsToDate(BS_EPOCH_UTC_MS + totalDays * MS_PER_DAY)
 }
-
-// Re-export daysBetween for use in other modules
-export { daysBetween }

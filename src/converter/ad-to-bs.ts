@@ -1,56 +1,83 @@
 import type { BSDate } from './types.js'
-import { BS_EPOCH, BS_YEAR_MIN, BS_YEAR_MAX } from './utils.js'
-import { getMonthLengths } from '../data/bs-month-lengths.js'
+import { BS_YEAR_MIN, BS_YEAR_MAX, adDateToDaysSinceEpoch } from './utils.js'
+import {
+  yearDayOffsets,
+  monthDayOffsets,
+  monthLengthTable,
+  BS_DATA_YEAR_MIN,
+  BS_DATA_YEAR_MAX,
+} from '../data/bs-month-lengths.js'
 
 /**
  * Converts a JavaScript Date (Gregorian/AD) to a Bikram Sambat date.
- * Throws RangeError if the date is outside the supported range.
+ *
+ * The conversion reads UTC date components from the input Date, making it
+ * timezone-safe regardless of how the Date was constructed.
+ *
+ * Complexity: O(log n) — binary search over yearDayOffsets to find the year,
+ * then O(1) month lookup. n = 91 (years in dataset).
+ *
+ * Throws RangeError for dates outside the supported range.
  */
 export function adToBs(adDate: Date): BSDate {
-  const epochUtc = Date.UTC(BS_EPOCH.getFullYear(), BS_EPOCH.getMonth(), BS_EPOCH.getDate())
-  const targetUtc = Date.UTC(adDate.getFullYear(), adDate.getMonth(), adDate.getDate())
+  const days = adDateToDaysSinceEpoch(adDate)
 
-  let remaining = Math.round((targetUtc - epochUtc) / 86_400_000)
-
-  if (remaining < 0) {
+  if (days < 0) {
     throw new RangeError(
-      `Date ${adDate.toISOString().slice(0, 10)} is before BS ${BS_YEAR_MIN} Baishakh 1 (AD 1943-04-14).`
+      `${utcDateString(adDate)} is before BS ${BS_YEAR_MIN} Baishakh 1 (AD 1943-04-14).`
     )
   }
 
-  let year = BS_YEAR_MIN
-  let month = 1
-  let day = 1
-
-  // Walk through BS years
-  while (year <= BS_YEAR_MAX) {
-    const lengths = getMonthLengths(year)
-    const daysInYear = lengths.reduce((sum, len) => sum + len, 0)
-
-    if (remaining < daysInYear) break
-
-    remaining -= daysInYear
-    year++
-  }
-
-  if (year > BS_YEAR_MAX) {
+  const lastYearIdx = BS_DATA_YEAR_MAX - BS_DATA_YEAR_MIN
+  const totalDays = yearDayOffsets[lastYearIdx + 1] as number
+  if (days >= totalDays) {
     throw new RangeError(
-      `Date ${adDate.toISOString().slice(0, 10)} exceeds the supported range (BS ${BS_YEAR_MAX}).`
+      `${utcDateString(adDate)} exceeds the supported range (BS ${BS_YEAR_MAX}). ` +
+      `Extend bs-month-lengths.json to cover additional years.`
     )
   }
 
-  // Walk through BS months within the year
-  const lengths = getMonthLengths(year)
-  for (let m = 0; m < 12; m++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const daysInMonth = lengths[m]!
-    if (remaining < daysInMonth) {
-      month = m + 1
-      day = remaining + 1
-      break
+  // Binary search: find the largest yi where yearDayOffsets[yi] <= days
+  let lo = 0
+  let hi = lastYearIdx
+
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >>> 1
+    if ((yearDayOffsets[mid] as number) <= days) {
+      lo = mid
+    } else {
+      hi = mid - 1
     }
-    remaining -= daysInMonth
   }
 
-  return { year, month, day }
+  const yi = lo
+  const year = BS_DATA_YEAR_MIN + yi
+  const dayInYear = days - (yearDayOffsets[yi] as number)
+
+  // Walk months: at most 11 comparisons (12 months max)
+  let mi = 0
+  while (
+    mi < 11 &&
+    (monthDayOffsets[yi * 12 + mi + 1] as number) <= dayInYear
+  ) {
+    mi++
+  }
+
+  const day = dayInYear - (monthDayOffsets[yi * 12 + mi] as number) + 1
+
+  // Internal invariant check — should never fire with correct data
+  const monthLen = monthLengthTable[yi * 12 + mi] as number
+  /* istanbul ignore next */
+  if (day < 1 || day > monthLen) {
+    throw new Error(
+      `[nepali-calendar-engine] Internal error: computed day ${day} out of range ` +
+      `for BS ${year}/${mi + 1} (length ${monthLen}). Please report this bug.`
+    )
+  }
+
+  return { year, month: mi + 1, day }
+}
+
+function utcDateString(d: Date): string {
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
 }

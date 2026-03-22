@@ -2,7 +2,7 @@ import type { CalendarMonth, CalendarDay, CalendarOptions } from './types.js'
 import type { BSDate } from '../converter/types.js'
 import { bsToAd } from '../converter/bs-to-ad.js'
 import { adToBs } from '../converter/ad-to-bs.js'
-import { getMonthLengths } from '../data/bs-month-lengths.js'
+import { getMonthDayCount } from '../data/bs-month-lengths.js'
 import { getMonthName } from '../i18n/months.js'
 import { getWeekdayName } from '../i18n/weekdays.js'
 import { getPanchang } from '../panchang/panchang-lookup.js'
@@ -16,15 +16,10 @@ const DEFAULTS: Required<CalendarOptions> = {
 }
 
 /**
- * Returns the number of days in a given BS month.
+ * Returns the number of days in a given BS month. O(1).
  */
 export function getMonthDays(bsYear: number, bsMonth: number): number {
-  const lengths = getMonthLengths(bsYear)
-  if (bsMonth < 1 || bsMonth > 12) {
-    throw new RangeError(`Invalid BS month: ${bsMonth}. Must be 1–12.`)
-  }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return lengths[bsMonth - 1]!
+  return getMonthDayCount(bsYear, bsMonth)
 }
 
 function buildDay(
@@ -34,7 +29,7 @@ function buildDay(
   options: Required<CalendarOptions>
 ): CalendarDay {
   const ad = bsToAd(bsDate)
-  const weekday = getWeekdayName(ad.getDay())
+  const weekday = getWeekdayName(ad.getUTCDay())
   const isToday =
     bsDate.year === todayBs.year &&
     bsDate.month === todayBs.month &&
@@ -66,7 +61,7 @@ export function getMonthCalendar(
   const totalDays = getMonthDays(bsYear, bsMonth)
   const monthName = getMonthName(bsMonth)
   const firstDayAd = bsToAd({ year: bsYear, month: bsMonth, day: 1 })
-  const startWeekday = firstDayAd.getDay() // 0 = Sunday
+  const startWeekday = firstDayAd.getUTCDay() // 0 = Sunday, consistent with UTC-based dates
 
   const todayAd = new Date()
   const todayBs = adToBs(todayAd)
