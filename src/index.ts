@@ -8,7 +8,7 @@ export { nextMonth, prevMonth, monthRange } from './calendar/navigation.js'
 export type { CalendarDay, CalendarMonth, CalendarOptions } from './calendar/types.js'
 
 // ─── Layer 3: Panchang ────────────────────────────────────────────────────────
-export { getPanchang } from './panchang/panchang-lookup.js'
+export { getPanchang, ensurePanchangYear, preloadAllPanchang } from './panchang/panchang-lookup.js'
 export type { PanchangInfo } from './panchang/types.js'
 
 // ─── Layer 4: Events & Classification ────────────────────────────────────────
