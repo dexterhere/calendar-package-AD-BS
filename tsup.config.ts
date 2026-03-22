@@ -12,7 +12,7 @@ export default defineConfig({
   target: 'es2020',
   // Inline JSON data files into the bundle — no runtime file I/O needed
   loader: {
-    '.json': 'copy',
+    '.json': 'json',
   },
   outExtension({ format }) {
     return { js: format === 'cjs' ? '.cjs' : '.js' }

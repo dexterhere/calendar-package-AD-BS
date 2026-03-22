@@ -5,6 +5,7 @@ import { PAKSHA_NAMES } from '../i18n/paksha-names.js'
 import { getTithiByNumber } from '../i18n/tithi-names.js'
 import { getNakshatraByNumber } from '../i18n/nakshatra-names.js'
 import type { PanchangEntry } from '../data/panchang/schema.js'
+import { PANCHANG_DATA } from '../data/panchang/all-years.js'
 
 /** Years for which a panchang JSON data file exists. */
 const PANCHANG_YEARS = new Set([2082, 2083, 2084, 2085, 2086, 2087])
@@ -16,17 +17,6 @@ const PANCHANG_YEARS = new Set([2082, 2083, 2084, 2085, 2086, 2087])
  */
 const _cache = new Map<number, Map<number, PanchangEntry>>()
 
-// Pre-built import map for vite/Rollup to statically analyze
-// This avoids the "invalid import" warning for dynamic imports
-const PANCHANG_IMPORTS: Record<number, () => Promise<{ default: PanchangEntry[] }>> = {
-  2082: () => import('../data/panchang/2082.json', { with: { type: 'json' } }),
-  2083: () => import('../data/panchang/2083.json', { with: { type: 'json' } }),
-  2084: () => import('../data/panchang/2084.json', { with: { type: 'json' } }),
-  2085: () => import('../data/panchang/2085.json', { with: { type: 'json' } }),
-  2086: () => import('../data/panchang/2086.json', { with: { type: 'json' } }),
-  2087: () => import('../data/panchang/2087.json', { with: { type: 'json' } }),
-}
-
 /**
  * Loads and indexes a year's panchang JSON file into the cache.
  * Returns false if the file does not exist or fails to load.
@@ -36,11 +26,9 @@ async function loadYear(year: number): Promise<boolean> {
   if (!PANCHANG_YEARS.has(year)) return false
 
   try {
-    const importFn = PANCHANG_IMPORTS[year]
-    if (!importFn) return false
-
-    const module = await importFn()
-    const entries = module.default as PanchangEntry[]
+    // Use embedded data instead of dynamic imports
+    const entries = PANCHANG_DATA[year]
+    if (!entries) return false
 
     const index = new Map<number, PanchangEntry>()
     for (const entry of entries) {
@@ -48,7 +36,8 @@ async function loadYear(year: number): Promise<boolean> {
     }
     _cache.set(year, index)
     return true
-  } catch {
+  } catch (error) {
+    console.error('Failed to load panchang for year', year, error)
     return false
   }
 }

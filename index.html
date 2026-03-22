@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nepali Calendar Engine — Interactive Explorer</title>
+  <meta name="description" content="Interactive explorer for @meroevent/nepali-calendar-engine. Browse BS↔AD conversion, calendar grids, panchang data, festivals and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --surface: #131829;
+      --surface2: #1a2035;
+      --border: rgba(255,255,255,0.07);
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --accent-glow: rgba(99,102,241,0.25);
+      --green: #22c55e;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --cyan: #06b6d4;
+      --pink: #ec4899;
+      --radius: 12px;
+      --font: 'Inter', system-ui, sans-serif;
+      --font-ne: 'Noto Sans Devanagari', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    /* ─── Layout ─── */
+    .app { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+    /* ─── Hero ─── */
+    .hero {
+      text-align: center;
+      padding: 48px 20px 36px;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero h1 {
+      font-size: 2.6em;
+      font-weight: 800;
+      background: linear-gradient(135deg, #818cf8, #c084fc, #f0abfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative; z-index: 1;
+    }
+    .hero p { color: var(--text2); font-size: 1.05em; margin-top: 8px; position: relative; z-index:1; }
+    .hero .pkg-badge {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.82em;
+      color: var(--accent2);
+      margin-top: 14px;
+      font-family: monospace;
+      position: relative; z-index:1;
+    }
+    /* ─── Nav Tabs ─── */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 5px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+      position: sticky;
+      top: 12px;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font);
+      font-size: 0.88em;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--surface2); }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .tab-btn .tab-icon { margin-right: 6px; }
+    /* ─── Panels ─── */
+    .panel { display: none; animation: fadeIn 0.35s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* ─── Cards ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 1.15em;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* ─── Inputs ─── */
+    .input-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    .input-group label { font-size: 0.78em; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-group input, .input-group select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 0.92em;
+      outline: none;
+      transition: border-color 0.2s;
+      min-width: 120px;
+    }
+    .input-group input:focus, .input-group select:focus { border-color: var(--accent); }
+    .btn {
+      padding: 10px 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font);
+      font-size: 0.9em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+    .btn-sm { padding: 8px 16px; font-size: 0.82em; }
+    .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent2); }
+    .btn-outline:hover { background: var(--accent); color: #fff; }
+    /* ─── Result Box ─── */
+    .result-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.88em;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 420px;
+      overflow-y: auto;
+      line-height: 1.7;
+    }
+    .result-box .key { color: var(--accent2); }
+    .result-box .str { color: var(--green); }
+    .result-box .num { color: var(--amber); }
+    .result-box .bool { color: var(--pink); }
+    .result-box .null-val { color: var(--text2); }
+    /* ─── Calendar Grid ─── */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .cal-title { font-size: 1.3em; font-weight: 700; }
+    .cal-title small { color: var(--text2); font-weight: 400; font-size: 0.7em; margin-left: 8px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .cal-head {
+      text-align: center;
+      padding: 8px 4px;
+      font-size: 0.75em;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+    }
+    .cal-head .ne { display: block; font-family: var(--font-ne); font-weight: 400; font-size: 0.95em; margin-top: 2px; }
+    .cal-cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      font-size: 0.85em;
+    }
+    .cal-cell:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index:2; }
+    .cal-cell.other { opacity: 0.3; }
+    .cal-cell.today { border-color: var(--green); background: rgba(34,197,94,0.08); }
+    .cal-cell.selected { border-color: var(--accent); background: rgba(99,102,241,0.12); box-shadow: 0 0 20px var(--accent-glow); }
+    .cal-cell.auspicious { border-left: 3px solid var(--amber); }
+    .cal-cell.inauspicious { border-left: 3px solid var(--red); }
+    .cal-cell .bs-day { font-weight: 700; font-size: 1.1em; }
+    .cal-cell .ad-day { font-size: 0.7em; color: var(--text2); }
+    .cal-cell .tithi-tag { font-size: 0.6em; color: var(--cyan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-cell .dots { display: flex; gap: 3px; margin-top: 2px; }
+    .cal-cell .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .dot.religious { background: var(--amber); }
+    .dot.cultural { background: var(--cyan); }
+    .dot.national { background: var(--red); }
+    .dot.general { background: var(--text2); }
+    /* ─── Detail Sidebar ─── */
+    .detail-pane {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 20px;
+    }
+    .detail-pane h3 { font-size: 1em; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88em; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: var(--text2); }
+    .detail-value { font-weight: 600; text-align: right; }
+    .ne-text { font-family: var(--font-ne); }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.78em;
+      font-weight: 600;
+    }
+    .badge-green { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-red { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-gray { background: rgba(148,163,184,0.15); color: var(--text2); }
+    .badge-amber { background: rgba(245,158,11,0.15); color: var(--amber); }
+    .badge-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); }
+    .badge-pink { background: rgba(236,72,153,0.15); color: var(--pink); }
+    /* ─── Event cards ─── */
+    .event-card {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--accent);
+    }
+    .event-card.religious { border-left-color: var(--amber); }
+    .event-card.cultural { border-left-color: var(--cyan); }
+    .event-card.national { border-left-color: var(--red); }
+    .event-card .ev-name { font-weight: 600; font-size: 0.9em; }
+    .event-card .ev-ne { font-family: var(--font-ne); color: var(--text2); font-size: 0.85em; }
+    .event-card .ev-desc { font-size: 0.8em; color: var(--text2); margin-top: 4px; }
+    /* ─── Stats Grid ─── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.6em; font-weight: 800; background: linear-gradient(135deg, var(--accent),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-size: 0.75em; color: var(--text2); margin-top: 4px; }
+    /* ─── Auspicious List ─── */
+    .ausp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .ausp-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .ausp-card .date { font-weight: 700; font-size: 0.95em; }
+    .ausp-card .ad-date { font-size: 0.8em; color: var(--text2); }
+    /* ─── Empty state ─── */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text2); }
+    .empty-state .icon { font-size: 3em; margin-bottom: 12px; }
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 1.8em; }
+      .tabs { gap: 4px; }
+      .tab-btn { padding: 10px 10px; font-size: 0.78em; }
+      .cal-cell { font-size: 0.7em; padding: 4px; }
+      .input-row { flex-direction: column; }
+    }
+    /* ─── Loading spinner ─── */
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-center { text-align: center; padding: 40px; }
+    .loading-center p { margin-top: 12px; color: var(--text2); font-size: 0.9em; }
+    /* ─── filter pills ─── */
+    .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .pill {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      font-family: var(--font);
+      font-size: 0.8em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill:hover, .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Hero -->
+    <div class="hero">
+      <h1>📅 Nepali Calendar Engine</h1>
+      <p>Interactive explorer for the full API — Conversion, Grid, Panchang, Festivals &amp; more</p>
+      <span class="pkg-badge">@meroevent/nepali-calendar-engine v0.1.0</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="calendar"><span class="tab-icon">📆</span>Calendar</button>
+      <button class="tab-btn" data-tab="converter"><span class="tab-icon">🔄</span>Converter</button>
+      <button class="tab-btn" data-tab="panchang"><span class="tab-icon">🌙</span>Panchang</button>
+      <button class="tab-btn" data-tab="events"><span class="tab-icon">🎉</span>Festivals</button>
+      <button class="tab-btn" data-tab="auspicious"><span class="tab-icon">✨</span>Auspicious</button>
+      <button class="tab-btn" data-tab="api"><span class="tab-icon">📦</span>Raw API</button>
+    </div>
+
+    <!-- ═══════ Panel 1: Calendar ═══════ -->
+    <div class="panel active" id="panel-calendar">
+      <div class="card">
+        <div class="cal-nav">
+          <button class="btn btn-sm btn-outline" id="calPrev">← Prev</button>
+          <div class="cal-title" id="calTitle">Loading...</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" id="calToday">Today</button>
+            <button class="btn btn-sm btn-outline" id="calNext">Next →</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid">
+          <div class="loading-center" style="grid-column:1/-1;"><div class="spinner"></div><p>Loading calendar...</p></div>
+        </div>
+      </div>
+      <div class="detail-pane" id="dayDetail">
+        <div class="empty-state">
+          <div class="icon">👆</div>
+          <p><strong>Click any day</strong> to view full details</p>
+          <p style="font-size:0.85em;margin-top:6px;">Tithi · Paksha · Nakshatra · Festivals · Classification</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ Panel 2: Converter ═══════ -->
+    <div class="panel" id="panel-converter">
+      <div class="card">
+        <h2>🔄 BS → AD Conversion</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="bsY" value="2082" min="2000" max="2100"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="bsM" value="1" min="1" max="12"></div>
+          <div class="input-group"><label>BS Day</label><input type="number" id="bsD" value="1" min="1" max="32"></div>
+          <button class="btn" id="btnBsToAd">Convert →</button>
+        </div>
+        <div class="result-box" id="resBsToAd">Click "Convert" to see result</div>
+      </div>
+      <div class="card">
+        <h2>🔄 AD → BS Conversion</h2>
+        <div class="input-row">
+          <div class="input-group"><label>AD Date</label><input type="date" id="adDate" value="2025-04-14"></div>
+          <button class="btn" id="btnAdToBs">Convert →</button>
+        </div>
+        <div class="result-box" id="resAdToBs">Click "Convert" to see result</div>
+      </div>
+      <div class="card">
+        <h2>📅 Today (DualDate)</h2>
+        <div class="result-box" id="resToday">Loading...</div>
+      </div>
+      <div class="card">
+        <h2>📝 Format BS Date</h2>
+        <div class="input-row">
+          <div class="input-group"><label>Year</label><input type="number" id="fmtY" value="2082"></div>
+          <div class="input-group"><label>Month</label><input type="number" id="fmtM" value="1"></div>
+          <div class="input-group"><label>Day</label><input type="number" id="fmtD" value="15"></div>
+          <div class="input-group"><label>Format</label><input type="text" id="fmtStr" value="YYYY-MM-DD" placeholder="YYYY-MM-DD"></div>
+          <button class="btn" id="btnFormat">Format</button>
+        </div>
+        <div class="result-box" id="resFormat">Click "Format" to see result</div>
+      </div>
+    </div>
+
+    <!-- ═══════ Panel 3: Panchang ═══════ -->
+    <div class="panel" id="panel-panchang">
+      <div class="card">
+        <h2>🌙 Panchang Lookup</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="panY" value="2082" min="2082" max="2087"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="panM" value="1" min="1" max="12"></div>
+          <div class="input-group"><label>BS Day</label><input type="number" id="panD" value="1" min="1" max="32"></div>
+          <button class="btn" id="btnPanchang">Lookup</button>
+        </div>
+        <div class="result-box" id="resPanchang">Click "Lookup" to see panchang data</div>
+      </div>
+      <div class="card">
+        <h2>🌕 Full Month Panchang Table</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="panTblY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="panTblM" value="1"></div>
+          <button class="btn" id="btnPanTbl">Generate Table</button>
+        </div>
+        <div id="panTable" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ Panel 4: Events / Festivals ═══════ -->
+    <div class="panel" id="panel-events">
+      <div class="card">
+        <h2>🎉 Events for Month</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="evtY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label>
+            <select id="evtM">
+              <option value="1">1 - Baishakh</option><option value="2">2 - Jestha</option><option value="3">3 - Ashadh</option>
+              <option value="4">4 - Shrawan</option><option value="5">5 - Bhadra</option><option value="6">6 - Ashwin</option>
+              <option value="7">7 - Kartik</option><option value="8">8 - Mangsir</option><option value="9">9 - Poush</option>
+              <option value="10">10 - Magh</option><option value="11">11 - Falgun</option><option value="12">12 - Chaitra</option>
+            </select>
+          </div>
+          <button class="btn" id="btnEvtMonth">Show Events</button>
+        </div>
+        <div id="evtList"></div>
+      </div>
+      <div class="card">
+        <h2>📋 Events for Specific Date</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="evtDY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="evtDM" value="7"></div>
+          <div class="input-group"><label>BS Day</label><input type="number" id="evtDD" value="1"></div>
+          <button class="btn" id="btnEvtDate">Lookup</button>
+        </div>
+        <div id="evtDateList"></div>
+      </div>
+    </div>
+
+    <!-- ═══════ Panel 5: Auspicious ═══════ -->
+    <div class="panel" id="panel-auspicious">
+      <div class="card">
+        <h2>✨ Auspicious Dates in Month</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="auspY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label>
+            <select id="auspM">
+              <option value="1">1 - Baishakh</option><option value="2">2 - Jestha</option><option value="3">3 - Ashadh</option>
+              <option value="4">4 - Shrawan</option><option value="5">5 - Bhadra</option><option value="6">6 - Ashwin</option>
+              <option value="7">7 - Kartik</option><option value="8">8 - Mangsir</option><option value="9">9 - Poush</option>
+              <option value="10">10 - Magh</option><option value="11">11 - Falgun</option><option value="12">12 - Chaitra</option>
+            </select>
+          </div>
+          <div class="input-group"><label>Category</label>
+            <select id="auspCat">
+              <option value="">All</option>
+              <option value="wedding">Wedding</option>
+              <option value="bratabandha">Bratabandha</option>
+              <option value="religious">Religious</option>
+              <option value="national">National</option>
+              <option value="cultural">Cultural</option>
+            </select>
+          </div>
+          <button class="btn" id="btnAusp">Find Dates</button>
+        </div>
+        <div class="stats" id="auspStats"></div>
+        <div class="ausp-list" id="auspList"></div>
+      </div>
+      <div class="card">
+        <h2>🔍 Is Date Auspicious?</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="isAY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="isAM" value="7"></div>
+          <div class="input-group"><label>BS Day</label><input type="number" id="isAD" value="1"></div>
+          <button class="btn" id="btnIsAusp">Check</button>
+        </div>
+        <div class="result-box" id="resIsAusp">Click "Check" to see classification</div>
+      </div>
+    </div>
+
+    <!-- ═══════ Panel 6: Raw API ═══════ -->
+    <div class="panel" id="panel-api">
+      <div class="card">
+        <h2>📦 Raw getMonthCalendar() Output</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="apiY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="apiM" value="1"></div>
+          <button class="btn" id="btnApi">Fetch</button>
+        </div>
+        <div class="result-box" id="resApi" style="max-height:600px;">Click "Fetch" to see raw API output</div>
+      </div>
+      <div class="card">
+        <h2>📏 getMonthDays() — Days in BS Month</h2>
+        <div class="input-row">
+          <div class="input-group"><label>BS Year</label><input type="number" id="mdY" value="2082"></div>
+          <div class="input-group"><label>BS Month</label><input type="number" id="mdM" value="1"></div>
+          <button class="btn" id="btnMd">Get</button>
+        </div>
+        <div class="result-box" id="resMd">Click "Get"</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      getMonthCalendar, getMonthDays,
+      toBS, toAD, today, formatBS,
+      getPanchang, ensurePanchangYear, preloadAllPanchang,
+      getEventsForDate, getEventsForMonth, getAuspiciousDates,
+      isAuspicious, nextMonth, prevMonth
+    } from './dist/index.js';
+
+    // ─── Helpers ───────────────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const nepDigits = ['०','१','२','३','४','५','६','७','८','९'];
+    const toNe = n => String(n).split('').map(c => nepDigits[+c] ?? c).join('');
+    const monthEN = ['','Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'];
+    const wkEN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const wkNE = ['आइत','सोम','मंगल','बुध','बिहि','शुक्र','शनि'];
+
+    function syntaxHL(json) {
+      return json
+        .replace(/("(?:\\.|[^"\\])*")(\s*:)?/g, (m, p1, p2) => p2 ? `<span class="key">${p1}</span>${p2}` : `<span class="str">${p1}</span>`)
+        .replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>')
+        .replace(/\b(true|false)\b/g, '<span class="bool">$1</span>')
+        .replace(/\bnull\b/g, '<span class="null-val">null</span>');
+    }
+    function jsonBox(obj) { return syntaxHL(JSON.stringify(obj, (k,v) => v instanceof Date ? v.toISOString() : v, 2)); }
+
+    // ─── Tab switching ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        $('panel-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ─── Calendar Panel ────────────────────────────────────────────────────────
+    let curY = 2082, curM = 1, calData = null;
+
+    async function initToday() {
+      try {
+        const t = today();
+        curY = t.bs.year; curM = t.bs.month;
+      } catch { /* fallback */ }
+    }
+
+    async function loadCal() {
+      const grid = $('calGrid');
+      grid.innerHTML = '<div class="loading-center" style="grid-column:1/-1;"><div class="spinner"></div><p>Loading...</p></div>';
+      try {
+        calData = await getMonthCalendar(curY, curM, { includeAdjacentDays: true, enrichPanchang: true, enrichEvents: true });
+        renderCal();
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">⚠️</div><p>${e.message}</p></div>`;
+      }
+    }
+
+    function renderCal() {
+      const c = calData;
+      $('calTitle').innerHTML = `${c.monthName.en} ${c.year} <small class="ne-text">${c.monthName.ne} ${toNe(c.year)}</small>`;
+      let h = '';
+      for (let i = 0; i < 7; i++) h += `<div class="cal-head">${wkEN[i]}<span class="ne">${wkNE[i]}</span></div>`;
+      c.days.forEach((d, idx) => {
+        let cls = 'cal-cell';
+        if (!d.isCurrentMonth) cls += ' other';
+        if (d.isToday) cls += ' today';
+        if (d.classification === 'auspicious') cls += ' auspicious';
+        if (d.classification === 'inauspicious') cls += ' inauspicious';
+        const tithi = d.panchang ? d.panchang.tithi.name : '';
+        const adStr = d.ad.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        let dots = '';
+        if (d.events && d.events.length) {
+          dots = '<div class="dots">' + d.events.slice(0, 4).map(e => `<div class="dot ${e.category || ''}" title="${e.name.en}"></div>`).join('') + '</div>';
+        }
+        h += `<div class="${cls}" data-idx="${idx}"><div><span class="bs-day">${d.bs.day}</span> <span class="ad-day">${adStr}</span></div><div class="tithi-tag">${tithi}</div>${dots}</div>`;
+      });
+      $('calGrid').innerHTML = h;
+      document.querySelectorAll('.cal-cell').forEach(el => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.cal-cell.selected').forEach(s => s.classList.remove('selected'));
+          el.classList.add('selected');
+          showDetail(calData.days[+el.dataset.idx]);
+        });
+      });
+    }
+
+    function showDetail(d) {
+      const ad = d.ad;
+      const wkIdx = ad.getDay();
+      const classBadge = d.classification === 'auspicious' ? 'badge-green' : d.classification === 'inauspicious' ? 'badge-red' : 'badge-gray';
+      let eventsHTML = '';
+      if (d.events && d.events.length) {
+        eventsHTML = `<div style="margin-top:16px;"><h3>🎉 Events (${d.events.length})</h3>` +
+          d.events.map(e => `<div class="event-card ${e.category||''}"><div class="ev-name">${e.name.en}</div><div class="ev-ne ne-text">${e.name.ne}</div>${e.description ? `<div class="ev-desc">${e.description.en}</div>` : ''}${e.isPublicHoliday ? '<span class="badge badge-green" style="margin-top:6px;">Public Holiday</span>' : ''}</div>`).join('') + '</div>';
+      }
+      let panHTML = '';
+      if (d.panchang) {
+        const p = d.panchang;
+        panHTML = `<div style="margin-top:16px;"><h3>🌙 Panchang</h3>
+          <div class="detail-row"><span class="detail-label">Tithi</span><span class="detail-value">${p.tithi.name} <span class="ne-text">(${p.tithi.nameNe})</span></span></div>
+          <div class="detail-row"><span class="detail-label">Tithi #</span><span class="detail-value">${p.tithi.number}</span></div>
+          <div class="detail-row"><span class="detail-label">Paksha</span><span class="detail-value">${p.pakshaName.en} <span class="ne-text">(${p.pakshaName.ne})</span></span></div>
+          ${p.nakshatra ? `<div class="detail-row"><span class="detail-label">Nakshatra</span><span class="detail-value">${p.nakshatra.name} <span class="ne-text">(${p.nakshatra.nameNe})</span></span></div>` : ''}</div>`;
+      }
+      $('dayDetail').innerHTML = `
+        <h3>📅 ${d.bs.year}/${d.bs.month}/${d.bs.day} <span class="ne-text" style="font-weight:400;color:var(--text2);margin-left:8px;">${toNe(d.bs.year)} ${calData.monthName.ne} ${toNe(d.bs.day)}</span></h3>
+        <div class="detail-row"><span class="detail-label">AD Date</span><span class="detail-value">${ad.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span></div>
+        <div class="detail-row"><span class="detail-label">Weekday</span><span class="detail-value">${wkEN[wkIdx]}day <span class="ne-text">(${wkNE[wkIdx]}बार)</span></span></div>
+        <div class="detail-row"><span class="detail-label">Classification</span><span class="detail-value"><span class="badge ${classBadge}">${d.classification.toUpperCase()}</span></span></div>
+        ${d.isToday ? '<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="badge badge-green">TODAY</span></span></div>' : ''}
+        ${panHTML}
+        ${eventsHTML}`;
+    }
+
+    $('calPrev').onclick = () => { const r = prevMonth(curY, curM); curY = r.year; curM = r.month; loadCal(); };
+    $('calNext').onclick = () => { const r = nextMonth(curY, curM); curY = r.year; curM = r.month; loadCal(); };
+    $('calToday').onclick = async () => { await initToday(); loadCal(); };
+
+    // ─── Converter Panel ───────────────────────────────────────────────────────
+    $('btnBsToAd').onclick = () => {
+      try {
+        const ad = toAD({ year: +$('bsY').value, month: +$('bsM').value, day: +$('bsD').value });
+        $('resBsToAd').innerHTML = jsonBox({ bsInput: { year: +$('bsY').value, month: +$('bsM').value, day: +$('bsD').value }, adResult: ad.toISOString(), formatted: ad.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) });
+      } catch (e) { $('resBsToAd').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+    $('btnAdToBs').onclick = () => {
+      try {
+        const bs = toBS(new Date($('adDate').value + 'T00:00:00Z'));
+        $('resAdToBs').innerHTML = jsonBox({ adInput: $('adDate').value, bsResult: bs, formatted: formatBS(bs, 'YYYY MMMM DD') });
+      } catch (e) { $('resAdToBs').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+    try { $('resToday').innerHTML = jsonBox(today()); } catch(e) { $('resToday').innerHTML = `Error: ${e.message}`; }
+
+    $('btnFormat').onclick = () => {
+      try {
+        const res = formatBS({ year: +$('fmtY').value, month: +$('fmtM').value, day: +$('fmtD').value }, $('fmtStr').value);
+        $('resFormat').innerHTML = jsonBox({ format: $('fmtStr').value, result: res });
+      } catch (e) { $('resFormat').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+
+    // ─── Panchang Panel ────────────────────────────────────────────────────────
+    $('btnPanchang').onclick = async () => {
+      try {
+        await ensurePanchangYear(+$('panY').value);
+        const p = getPanchang({ year: +$('panY').value, month: +$('panM').value, day: +$('panD').value });
+        $('resPanchang').innerHTML = p ? jsonBox(p) : '<span style="color:var(--amber)">null — No panchang data available for this date</span>';
+      } catch (e) { $('resPanchang').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+
+    $('btnPanTbl').onclick = async () => {
+      const year = +$('panTblY').value, month = +$('panTblM').value;
+      try {
+        await ensurePanchangYear(year);
+        let days;
+        try { days = getMonthDays(year, month); } catch { days = 30; }
+        let rows = '';
+        for (let d = 1; d <= days; d++) {
+          const p = getPanchang({ year, month, day: d });
+          if (!p) continue;
+          const ad = toAD({ year, month, day: d });
+          rows += `<tr>
+            <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600;">${d}</td>
+            <td style="padding:8px;border-bottom:1px solid var(--border);font-size:0.85em;color:var(--text2);">${ad.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</td>
+            <td style="padding:8px;border-bottom:1px solid var(--border);">${p.tithi.name} <span class="ne-text" style="color:var(--text2)">(${p.tithi.nameNe})</span></td>
+            <td style="padding:8px;border-bottom:1px solid var(--border);"><span class="badge ${p.paksha==='shukla'?'badge-amber':'badge-cyan'}">${p.pakshaName.en}</span></td>
+            <td style="padding:8px;border-bottom:1px solid var(--border);">${p.nakshatra ? p.nakshatra.name : '—'}</td>
+          </tr>`;
+        }
+        $('panTable').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+          <thead><tr style="text-align:left;"><th style="padding:10px 8px;border-bottom:2px solid var(--accent);color:var(--accent2);font-size:0.8em;">Day</th><th style="padding:10px 8px;border-bottom:2px solid var(--accent);color:var(--accent2);font-size:0.8em;">AD</th><th style="padding:10px 8px;border-bottom:2px solid var(--accent);color:var(--accent2);font-size:0.8em;">Tithi</th><th style="padding:10px 8px;border-bottom:2px solid var(--accent);color:var(--accent2);font-size:0.8em;">Paksha</th><th style="padding:10px 8px;border-bottom:2px solid var(--accent);color:var(--accent2);font-size:0.8em;">Nakshatra</th></tr></thead><tbody>${rows}</tbody></table>`;
+      } catch (e) { $('panTable').innerHTML = `<div class="empty-state"><p style="color:var(--red)">${e.message}</p></div>`; }
+    };
+
+    // ─── Events Panel ──────────────────────────────────────────────────────────
+    $('btnEvtMonth').onclick = async () => {
+      try {
+        await ensurePanchangYear(+$('evtY').value);
+        const events = getEventsForMonth(+$('evtY').value, +$('evtM').value);
+        if (!events.length) { $('evtList').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No events found for this month</p></div>'; return; }
+        $('evtList').innerHTML = events.map(e => `<div class="event-card ${e.category||''}"><div class="ev-name">${e.name.en}</div><div class="ev-ne ne-text">${e.name.ne}</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="badge badge-cyan">${e.type}</span>${e.category ? `<span class="badge badge-pink">${e.category}</span>` : ''}${e.isPublicHoliday ? '<span class="badge badge-green">Holiday</span>' : ''}
+        </div>${e.description ? `<div class="ev-desc">${e.description.en}</div>` : ''}</div>`).join('');
+      } catch (e) { $('evtList').innerHTML = `<p style="color:var(--red)">${e.message}</p>`; }
+    };
+
+    $('btnEvtDate').onclick = async () => {
+      try {
+        await ensurePanchangYear(+$('evtDY').value);
+        const events = getEventsForDate({ year: +$('evtDY').value, month: +$('evtDM').value, day: +$('evtDD').value });
+        if (!events.length) { $('evtDateList').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No events on this date</p></div>'; return; }
+        $('evtDateList').innerHTML = events.map(e => `<div class="event-card ${e.category||''}"><div class="ev-name">${e.name.en}</div><div class="ev-ne ne-text">${e.name.ne}</div>${e.description ? `<div class="ev-desc">${e.description.en}</div>` : ''}</div>`).join('');
+      } catch (e) { $('evtDateList').innerHTML = `<p style="color:var(--red)">${e.message}</p>`; }
+    };
+
+    // ─── Auspicious Panel ──────────────────────────────────────────────────────
+    $('btnAusp').onclick = async () => {
+      try {
+        const year = +$('auspY').value, month = +$('auspM').value;
+        const cat = $('auspCat').value || undefined;
+        await ensurePanchangYear(year);
+        const dates = getAuspiciousDates(year, month, cat);
+        const ausp = dates.filter(d => d.classification === 'auspicious').length;
+        const inausp = dates.filter(d => d.classification === 'inauspicious').length;
+        $('auspStats').innerHTML = `
+          <div class="stat-card"><div class="stat-val">${dates.length}</div><div class="stat-label">Total Special Dates</div></div>
+          <div class="stat-card"><div class="stat-val" style="background:linear-gradient(135deg,var(--green),var(--cyan));-webkit-background-clip:text;">${ausp}</div><div class="stat-label">Auspicious</div></div>
+          <div class="stat-card"><div class="stat-val" style="background:linear-gradient(135deg,var(--red),var(--pink));-webkit-background-clip:text;">${inausp}</div><div class="stat-label">Inauspicious</div></div>`;
+        if (!dates.length) { $('auspList').innerHTML = '<div class="empty-state"><p>No special dates found</p></div>'; return; }
+        $('auspList').innerHTML = dates.map(d => {
+          const badgeCls = d.classification === 'auspicious' ? 'badge-green' : d.classification === 'inauspicious' ? 'badge-red' : 'badge-gray';
+          return `<div class="ausp-card"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="date">${monthEN[d.bs.month]} ${d.bs.day}, ${d.bs.year}</div><span class="badge ${badgeCls}">${d.classification}</span></div><div class="ad-date">${d.ad.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>${d.events.length ? '<div style="margin-top:8px;">'+d.events.map(e=>`<span class="badge badge-cyan" style="margin:2px;font-size:0.72em;">${e.name.en}</span>`).join('')+'</div>':''}</div>`;
+        }).join('');
+      } catch (e) { $('auspList').innerHTML = `<p style="color:var(--red)">${e.message}</p>`; }
+    };
+
+    $('btnIsAusp').onclick = async () => {
+      try {
+        await ensurePanchangYear(+$('isAY').value);
+        const cls = isAuspicious({ year: +$('isAY').value, month: +$('isAM').value, day: +$('isAD').value });
+        const color = cls === 'auspicious' ? 'var(--green)' : cls === 'inauspicious' ? 'var(--red)' : 'var(--text2)';
+        $('resIsAusp').innerHTML = `<span style="font-size:1.6em;font-weight:800;color:${color};">${cls.toUpperCase()}</span>`;
+      } catch (e) { $('resIsAusp').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+
+    // ─── Raw API Panel ─────────────────────────────────────────────────────────
+    $('btnApi').onclick = async () => {
+      $('resApi').innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
+      try {
+        const data = await getMonthCalendar(+$('apiY').value, +$('apiM').value, { includeAdjacentDays: true, enrichPanchang: true, enrichEvents: true });
+        $('resApi').innerHTML = jsonBox(data);
+      } catch (e) { $('resApi').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+
+    $('btnMd').onclick = () => {
+      try {
+        const d = getMonthDays(+$('mdY').value, +$('mdM').value);
+        $('resMd').innerHTML = jsonBox({ year: +$('mdY').value, month: +$('mdM').value, monthName: monthEN[+$('mdM').value], totalDays: d });
+      } catch (e) { $('resMd').innerHTML = `<span style="color:var(--red)">Error: ${e.message}</span>`; }
+    };
+
+    // ─── Init ──────────────────────────────────────────────────────────────────
+    await initToday();
+    loadCal();
+  </script>
+</body>
+</html>

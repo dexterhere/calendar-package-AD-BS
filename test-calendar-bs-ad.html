@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nepali Calendar - BS/AD Switch</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.8em; margin-bottom: 5px; }
+    header p { opacity: 0.9; font-size: 0.9em; }
+    
+    /* Controls */
+    .controls {
+      padding: 20px;
+      background: #f8f9fa;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .control-row:last-child { margin-bottom: 0; }
+    
+    /* Date Display */
+    .date-display {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .date-box {
+      padding: 12px 20px;
+      background: white;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      min-width: 200px;
+    }
+    .date-box.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+    }
+    .date-label {
+      font-size: 0.75em;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    .date-value {
+      font-size: 1.3em;
+      font-weight: 700;
+      color: #212529;
+    }
+    .date-value-ne {
+      font-size: 0.9em;
+      color: #6c757d;
+      margin-top: 3px;
+    }
+    
+    /* Toggle Switch */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toggle-label {
+      font-weight: 600;
+      color: #495057;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 140px;
+      height: 34px;
+      background: #dee2e6;
+      border-radius: 17px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .toggle-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 28px;
+      height: 28px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      font-weight: 700;
+    }
+    .toggle-switch.active .toggle-knob {
+      transform: translateX(106px);
+    }
+    .toggle-text {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75em;
+      font-weight: 600;
+      color: white;
+      width: 100%;
+      text-align: center;
+      pointer-events: none;
+    }
+    
+    /* Navigation Buttons */
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: #6c757d;
+    }
+    
+    /* Calendar Grid */
+    .calendar-container {
+      padding: 25px;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+    .calendar-header {
+      text-align: center;
+      font-weight: 700;
+      color: #495057;
+      padding: 12px;
+      background: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.85em;
+    }
+    .calendar-header small {
+      display: block;
+      color: #6c757d;
+      margin-top: 3px;
+      font-weight: 400;
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      border: 2px solid #dee2e6;
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .calendar-day:hover {
+      border-color: #667eea;
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+      transform: translateY(-2px);
+    }
+    .calendar-day.selected {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    }
+    .calendar-day.other-month {
+      opacity: 0.3;
+      background: #f8f9fa;
+    }
+    .calendar-day.today {
+      border-color: #28a745;
+      background: linear-gradient(135deg, #28a74515 0%, #20c99715 100%);
+    }
+    .calendar-day.auspicious {
+      border-color: #ffc107;
+    }
+    .calendar-day.inauspicious {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+    .day-main {
+      display: flex;
+      flex-direction: column;
+    }
+    .day-number {
+      font-weight: 700;
+      font-size: 1.3em;
+      color: #212529;
+    }
+    .day-number.ad {
+      font-size: 0.7em;
+      color: #6c757d;
+      font-weight: 400;
+    }
+    .day-info {
+      font-size: 0.65em;
+      color: #495057;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .day-dots {
+      margin-top: 5px;
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .event-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .event-dot.religious { background: #ffc107; }
+    .event-dot.cultural { background: #17a2b8; }
+    .event-dot.national { background: #dc3545; }
+    .event-dot.public_holiday { background: #28a745; }
+    
+    /* Day Detail Panel */
+    .detail-panel {
+      padding: 25px;
+      background: #f8f9fa;
+      border-top: 2px solid #e9ecef;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .detail-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .detail-card h3 {
+      color: #1e3c72;
+      font-size: 1em;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f3f4;
+      font-size: 0.9em;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #6c757d; font-weight: 500; }
+    .detail-value { color: #212529; font-weight: 600; }
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+    .badge.auspicious { background: #d4edda; color: #155724; }
+    .badge.inauspicious { background: #f8d7da; color: #721c24; }
+    .badge.neutral { background: #e2e3e5; color: #383d41; }
+    
+    .event-list { list-style: none; }
+    .event-item {
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border-left: 3px solid #667eea;
+    }
+    .event-item.religious { border-left-color: #ffc107; }
+    .event-item.cultural { border-left-color: #17a2b8; }
+    .event-item.national { border-left-color: #dc3545; }
+    .event-item.public_holiday { border-left-color: #28a745; }
+    .event-name { font-weight: 600; color: #212529; font-size: 0.9em; }
+    .event-name-ne { color: #6c757d; font-size: 0.85em; margin-top: 3px; }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📅 Nepali Calendar</h1>
+      <p>Bikram Sambat ↔ Gregorian (AD) Calendar with Panchang</p>
+    </header>
+
+    <div class="controls">
+      <div class="control-row">
+        <div class="date-display">
+          <div class="date-box" id="bsDateBox">
+            <div class="date-label">Bikram Sambat (BS)</div>
+            <div class="date-value" id="bsDateValue">2082/1/1</div>
+            <div class="date-value-ne" id="bsDateNe">२०८२ बैशाख १</div>
+          </div>
+          
+          <div class="toggle-container">
+            <span class="toggle-label">Switch to:</span>
+            <div class="toggle-switch" id="calendarToggle" onclick="toggleCalendar()">
+              <div class="toggle-knob" id="toggleKnob">BS</div>
+              <div class="toggle-text">BS ⇄ AD</div>
+            </div>
+          </div>
+          
+          <div class="date-box" id="adDateBox">
+            <div class="date-label">Gregorian (AD)</div>
+            <div class="date-value" id="adDateValue">April 14, 2025</div>
+            <div class="date-value-ne" id="adDateNe">Monday</div>
+          </div>
+        </div>
+        
+        <div class="nav-buttons">
+          <button class="btn btn-secondary" onclick="prevMonth()">← Prev</button>
+          <button class="btn" onclick="goToToday()">Today</button>
+          <button class="btn btn-secondary" onclick="nextMonth()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="calendar-container">
+      <h2 id="calendarTitle" style="color: #1e3c72; margin-bottom: 15px; font-size: 1.4em;"></h2>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel">
+      <div class="loading">
+        <p style="font-size: 3em; margin-bottom: 10px;">👆</p>
+        <p><strong>Click on any day</strong> to view detailed information</p>
+        <p style="margin-top: 10px; font-size: 0.85em; color: #6c757d;">Tithi, Paksha, Nakshatra, Festivals & more!</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { getMonthCalendar, toBS, toAD, formatBS } from './dist/index.js';
+
+    let currentMode = 'BS'; // 'BS' or 'AD'
+    let currentBSYear = 2082;
+    let currentBSMonth = 1;
+    let currentCalendarData = null;
+    let selectedDate = null;
+
+    const monthNames = {
+      1: { en: 'Baishakh', ne: 'बैशाख' }, 2: { en: 'Jestha', ne: 'जेठ' },
+      3: { en: 'Ashadh', ne: 'असार' }, 4: { en: 'Shrawan', ne: 'साउन' },
+      5: { en: 'Bhadra', ne: 'भदौ' }, 6: { en: 'Ashwin', ne: 'आश्विन' },
+      6: { en: 'Ashwin', ne: 'असोज' }, 7: { en: 'Kartik', ne: 'कार्तिक' },
+      8: { en: 'Mangsir', ne: 'मंसिर' }, 9: { en: 'Poush', ne: 'पौष' },
+      10: { en: 'Magh', ne: 'माघ' }, 11: { en: 'Falgun', ne: 'फागुन' },
+      12: { en: 'Chaitra', ne: 'चैत' }
+    };
+
+    const weekdays = [
+      { en: 'Sunday', ne: 'आइतबार' },
+      { en: 'Monday', ne: 'सोमबार' },
+      { en: 'Tuesday', ne: 'मङ्गलबार' },
+      { en: 'Wednesday', ne: 'बुधबार' },
+      { en: 'Thursday', ne: 'बिहीबार' },
+      { en: 'Friday', ne: 'शुक्रबार' },
+      { en: 'Saturday', ne: 'शनिबार' }
+    ];
+
+    window.toggleCalendar = function() {
+      currentMode = currentMode === 'BS' ? 'AD' : 'BS';
+      document.getElementById('calendarToggle').classList.toggle('active');
+      document.getElementById('toggleKnob').textContent = currentMode === 'BS' ? 'BS' : 'AD';
+      updateDateDisplay();
+      loadCalendar();
+    };
+
+    window.prevMonth = function() {
+      if (currentMode === 'BS') {
+        currentBSMonth--;
+        if (currentBSMonth < 1) {
+          currentBSMonth = 12;
+          currentBSYear--;
+        }
+      } else {
+        // For AD mode, navigate by AD month
+        const firstDay = currentCalendarData.days.find(d => d.isCurrentMonth);
+        if (firstDay) {
+          const newDate = new Date(firstDay.ad);
+          newDate.setMonth(newDate.getMonth() - 1);
+          const bsDate = toBS(newDate);
+          currentBSYear = bsDate.year;
+          currentBSMonth = bsDate.month;
+        }
+      }
+      loadCalendar();
+    };
+
+    window.nextMonth = function() {
+      if (currentMode === 'BS') {
+        currentBSMonth++;
+        if (currentBSMonth > 12) {
+          currentBSMonth = 1;
+          currentBSYear++;
+        }
+      } else {
+        const firstDay = currentCalendarData.days.find(d => d.isCurrentMonth);
+        if (firstDay) {
+          const newDate = new Date(firstDay.ad);
+          newDate.setMonth(newDate.getMonth() + 1);
+          const bsDate = toBS(newDate);
+          currentBSYear = bsDate.year;
+          currentBSMonth = bsDate.month;
+        }
+      }
+      loadCalendar();
+    };
+
+    window.goToToday = function() {
+      const today = new Date();
+      const bsToday = toBS(today);
+      currentBSYear = bsToday.year;
+      currentBSMonth = bsToday.month;
+      loadCalendar();
+    };
+
+    function updateDateDisplay() {
+      const bsBox = document.getElementById('bsDateBox');
+      const adBox = document.getElementById('adDateBox');
+      
+      if (currentMode === 'BS') {
+        bsBox.classList.add('active');
+        adBox.classList.remove('active');
+      } else {
+        adBox.classList.add('active');
+        bsBox.classList.remove('active');
+      }
+    }
+
+    async function loadCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const title = document.getElementById('calendarTitle');
+      const details = document.getElementById('detailPanel');
+      
+      grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading calendar...</p></div>';
+      details.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+      
+      try {
+        const calendar = await getMonthCalendar(currentBSYear, currentBSMonth, {
+          includeAdjacentDays: true,
+          enrichPanchang: true,
+          enrichEvents: true
+        });
+        
+        currentCalendarData = calendar;
+        
+        // Update title
+        const month = monthNames[calendar.month];
+        title.textContent = `${month.en} ${calendar.year} (${month.ne})`;
+        
+        // Update date displays
+        const firstDay = calendar.days.find(d => d.isCurrentMonth);
+        if (firstDay) {
+          document.getElementById('bsDateValue').textContent = `${firstDay.bs.year}/${firstDay.bs.month}/${firstDay.bs.day}`;
+          document.getElementById('bsDateNe').textContent = `${toNepaliNumber(firstDay.bs.year)} ${monthNames[firstDay.bs.month].ne} ${toNepaliNumber(firstDay.bs.day)}`;
+          
+          const adDate = firstDay.ad;
+          document.getElementById('adDateValue').textContent = adDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+          document.getElementById('adDateNe').textContent = weekdays[adDate.getDay()].en;
+        }
+        
+        renderCalendarGrid(calendar);
+        
+        // Auto-select first day
+        const firstCurrentMonthDay = calendar.days.find(d => d.isCurrentMonth);
+        if (firstCurrentMonthDay) {
+          const firstEl = document.querySelector(`[data-index="0"]`);
+          if (firstEl) selectDay(firstEl, firstCurrentMonthDay);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        grid.innerHTML = `<div class="error-message"><strong>Error:</strong> ${error.message}</div>`;
+      }
+    }
+
+    function toNepaliNumber(num) {
+      const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+      return num.toString().split('').map(d => nepaliDigits[parseInt(d)] || d).join('');
+    }
+
+    function renderCalendarGrid(calendar) {
+      const grid = document.getElementById('calendarGrid');
+      let html = '';
+      
+      // Weekday headers
+      weekdays.forEach(day => {
+        html += `<div class="calendar-header">${day.en}<br><small>${day.ne}</small></div>`;
+      });
+      
+      // Days
+      calendar.days.forEach((day, index) => {
+        const isOtherMonth = !day.isCurrentMonth;
+        const isToday = day.isToday;
+        const classification = day.classification;
+        
+        let classes = 'calendar-day';
+        if (isOtherMonth) classes += ' other-month';
+        if (isToday) classes += ' today';
+        if (classification === 'auspicious') classes += ' auspicious';
+        if (classification === 'inauspicious') classes += ' inauspicious';
+        
+        const tithiShort = day.panchang ? day.panchang.tithi.name.substring(0, 6) : '';
+        const eventCount = day.events ? day.events.length : 0;
+        
+        html += `
+          <div class="${classes}" data-index="${index}">
+            <div class="day-main">
+              <div class="day-number">${day.bs.day}</div>
+              <div class="day-number ad">${day.ad.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+            </div>
+            ${day.panchang ? `<div class="day-info">${tithiShort}</div>` : ''}
+            ${eventCount > 0 ? `
+              <div class="day-dots">
+                ${day.events.slice(0, 5).map(e => `<span class="event-dot ${e.category || e.type}" title="${e.name.en}"></span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      grid.innerHTML = html;
+      
+      // Add click listeners
+      document.querySelectorAll('.calendar-day').forEach((el, idx) => {
+        el.addEventListener('click', function() {
+          const day = calendar.days[idx];
+          selectDay(this, day);
+        });
+      });
+    }
+
+    function selectDay(element, day) {
+      document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      selectedDate = day;
+      showDayDetails(day);
+    }
+
+    function showDayDetails(day) {
+      const bsMonth = monthNames[day.bs.month];
+      const weekday = weekdays[day.ad.getDay()];
+      
+      const html = `
+        <div class="detail-grid">
+          <div class="detail-card">
+            <h3>📅 Date Information</h3>
+            <div class="detail-row">
+              <span class="detail-label">BS Date</span>
+              <span class="detail-value">${day.bs.year}/{day.bs.month}/{day.bs.day}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">BS (Nepali)</span>
+              <span class="detail-value">${toNepaliNumber(day.bs.year)} ${bsMonth.ne} ${toNepaliNumber(day.bs.day)}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">AD Date</span>
+              <span class="detail-value">${day.ad.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Weekday</span>
+              <span class="detail-value">${weekday.en} (${weekday.ne})</span>
+            </div>
+          </div>
+          
+          ${day.panchang ? `
+            <div class="detail-card">
+              <h3>🌙 Panchang</h3>
+              <div class="detail-row">
+                <span class="detail-label">Tithi</span>
+                <span class="detail-value">${day.panchang.tithi.name}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Tithi (NE)</span>
+                <span class="detail-value">${day.panchang.tithi.nameNe}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Paksha</span>
+                <span class="detail-value">${day.panchang.pakshaName.en}</span>
+              </div>
+              ${day.panchang.nakshatra ? `
+                <div class="detail-row">
+                  <span class="detail-label">Nakshatra</span>
+                  <span class="detail-value">${day.panchang.nakshatra.name}</span>
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+          
+          <div class="detail-card">
+            <h3>✨ Classification</h3>
+            <span class="badge ${day.classification}">${day.classification.toUpperCase()}</span>
+            ${day.isToday ? '<span class="badge" style="background: #d4edda; color: #155724; margin-left: 10px;">TODAY</span>' : ''}
+          </div>
+          
+          ${day.events && day.events.length > 0 ? `
+            <div class="detail-card" style="grid-column: 1 / -1;">
+              <h3>🎉 Events & Festivals (${day.events.length})</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                ${day.events.map(event => `
+                  <div class="event-item ${event.category || event.type}">
+                    <div class="event-name">${event.name.en}</div>
+                    <div class="event-name-ne">${event.name.ne}</div>
+                    ${event.isPublicHoliday ? '<span class="badge" style="background: #d4edda; color: #155724; font-size: 0.7em; margin-top: 5px;">Holiday</span>' : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      document.getElementById('detailPanel').innerHTML = html;
+    }
+
+    // Initialize
+    updateDateDisplay();
+    loadCalendar();
+  </script>
+</body>
+</html>

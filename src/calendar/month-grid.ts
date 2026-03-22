@@ -5,7 +5,7 @@ import { adToBs } from '../converter/ad-to-bs.js'
 import { getMonthDayCount } from '../data/bs-month-lengths.js'
 import { getMonthName } from '../i18n/months.js'
 import { getWeekdayName } from '../i18n/weekdays.js'
-import { getPanchang } from '../panchang/panchang-lookup.js'
+import { getPanchang, ensurePanchangYear } from '../panchang/panchang-lookup.js'
 import { getEventsForDate } from '../events/event-engine.js'
 import { isAuspicious } from '../events/classifier.js'
 
@@ -50,13 +50,20 @@ function buildDay(
 /**
  * Generates a complete calendar month data structure for a given BS year and month.
  * Suitable for direct consumption by any calendar UI component.
+ * 
+ * Note: This is an async function that automatically loads panchang data for the year.
  */
-export function getMonthCalendar(
+export async function getMonthCalendar(
   bsYear: number,
   bsMonth: number,
   options?: CalendarOptions
-): CalendarMonth {
+): Promise<CalendarMonth> {
   const opts: Required<CalendarOptions> = { ...DEFAULTS, ...options }
+
+  // Auto-load panchang data for the year if enrichment is enabled
+  if (opts.enrichPanchang || opts.enrichEvents) {
+    await ensurePanchangYear(bsYear)
+  }
 
   const totalDays = getMonthDays(bsYear, bsMonth)
   const monthName = getMonthName(bsMonth)
