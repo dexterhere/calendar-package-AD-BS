@@ -1,0 +1,5 @@
+{
+  "__note": "BS month lengths for years 2000–2100. Each array has 12 entries (Baishakh–Chaitra). TODO: populate with validated data from cross-referenced open-source sources.",
+  "2082": [31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30],
+  "2083": [31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31]
+}

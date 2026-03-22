@@ -1,0 +1,116 @@
+import type { CalendarMonth, CalendarDay, CalendarOptions } from './types.js'
+import type { BSDate } from '../converter/types.js'
+import { bsToAd } from '../converter/bs-to-ad.js'
+import { adToBs } from '../converter/ad-to-bs.js'
+import { getMonthLengths } from '../data/bs-month-lengths.js'
+import { getMonthName } from '../i18n/months.js'
+import { getWeekdayName } from '../i18n/weekdays.js'
+import { getPanchang } from '../panchang/panchang-lookup.js'
+import { getEventsForDate } from '../events/event-engine.js'
+import { isAuspicious } from '../events/classifier.js'
+
+const DEFAULTS: Required<CalendarOptions> = {
+  includeAdjacentDays: true,
+  enrichPanchang: true,
+  enrichEvents: true,
+}
+
+/**
+ * Returns the number of days in a given BS month.
+ */
+export function getMonthDays(bsYear: number, bsMonth: number): number {
+  const lengths = getMonthLengths(bsYear)
+  if (bsMonth < 1 || bsMonth > 12) {
+    throw new RangeError(`Invalid BS month: ${bsMonth}. Must be 1–12.`)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return lengths[bsMonth - 1]!
+}
+
+function buildDay(
+  bsDate: BSDate,
+  isCurrentMonth: boolean,
+  todayBs: BSDate,
+  options: Required<CalendarOptions>
+): CalendarDay {
+  const ad = bsToAd(bsDate)
+  const weekday = getWeekdayName(ad.getDay())
+  const isToday =
+    bsDate.year === todayBs.year &&
+    bsDate.month === todayBs.month &&
+    bsDate.day === todayBs.day
+
+  return {
+    bs: bsDate,
+    ad,
+    weekday,
+    isToday,
+    isCurrentMonth,
+    panchang: options.enrichPanchang ? getPanchang(bsDate) : null,
+    events: options.enrichEvents ? getEventsForDate(bsDate) : [],
+    classification: options.enrichEvents ? isAuspicious(bsDate) : 'neutral',
+  }
+}
+
+/**
+ * Generates a complete calendar month data structure for a given BS year and month.
+ * Suitable for direct consumption by any calendar UI component.
+ */
+export function getMonthCalendar(
+  bsYear: number,
+  bsMonth: number,
+  options?: CalendarOptions
+): CalendarMonth {
+  const opts: Required<CalendarOptions> = { ...DEFAULTS, ...options }
+
+  const totalDays = getMonthDays(bsYear, bsMonth)
+  const monthName = getMonthName(bsMonth)
+  const firstDayAd = bsToAd({ year: bsYear, month: bsMonth, day: 1 })
+  const startWeekday = firstDayAd.getDay() // 0 = Sunday
+
+  const todayAd = new Date()
+  const todayBs = adToBs(todayAd)
+
+  const days: CalendarDay[] = []
+
+  // Overflow days from the previous month (to complete the first week row)
+  if (opts.includeAdjacentDays && startWeekday > 0) {
+    const prevMonth = bsMonth === 1 ? 12 : bsMonth - 1
+    const prevYear = bsMonth === 1 ? bsYear - 1 : bsYear
+    const prevMonthDays = getMonthDays(prevYear, prevMonth)
+
+    for (let i = startWeekday - 1; i >= 0; i--) {
+      const day = prevMonthDays - i
+      days.push(buildDay({ year: prevYear, month: prevMonth, day }, false, todayBs, opts))
+    }
+  }
+
+  // Current month days
+  for (let day = 1; day <= totalDays; day++) {
+    days.push(buildDay({ year: bsYear, month: bsMonth, day }, true, todayBs, opts))
+  }
+
+  // Overflow days from the next month (to complete the last week row)
+  if (opts.includeAdjacentDays) {
+    const currentLength = days.length
+    const remainder = currentLength % 7
+    if (remainder !== 0) {
+      const nextDaysNeeded = 7 - remainder
+      const nextMonth = bsMonth === 12 ? 1 : bsMonth + 1
+      const nextYear = bsMonth === 12 ? bsYear + 1 : bsYear
+
+      for (let day = 1; day <= nextDaysNeeded; day++) {
+        days.push(buildDay({ year: nextYear, month: nextMonth, day }, false, todayBs, opts))
+      }
+    }
+  }
+
+  return {
+    year: bsYear,
+    month: bsMonth,
+    monthName: { en: monthName.en, ne: monthName.ne },
+    totalDays,
+    startWeekday,
+    days,
+  }
+}
