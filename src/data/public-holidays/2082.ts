@@ -5,7 +5,7 @@
  * Some holidays are declared annually by the government and may vary.
  */
 
-import type { CalendarEvent } from '../events/types.js'
+import type { CalendarEvent } from '../../events/types.js'
 
 export const PUBLIC_HOLIDAYS_2082: readonly CalendarEvent[] = [
   {

@@ -2,7 +2,22 @@
   "permissions": {
     "allow": [
       "Bash(pnpm install:*)",
-      "Bash(pnpm approve-builds:*)"
+      "Bash(pnpm approve-builds:*)",
+      "Bash(ls *.html *.ts *.js *.md)",
+      "Bash(npx vitest:*)",
+      "WebSearch",
+      "Bash(printf 'y\\\\n')",
+      "Bash(node -e \"import\\(''@bidyashish/panchang''\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\).catch\\(e => console.error\\(e.message\\)\\)\")",
+      "Bash(pnpm rebuild:*)",
+      "Bash(npm info:*)",
+      "Bash(node -e \"import\\(''@bidyashish/panchang''\\).then\\(m => console.log\\(''OK'', Object.keys\\(m\\)\\)\\).catch\\(e => console.error\\(''FAIL'', e.message\\)\\)\")",
+      "Bash(pnpm remove:*)",
+      "Bash(node -e \"import\\(''@ishubhamx/panchangam-js''\\).then\\(m => console.log\\(''OK'', Object.keys\\(m\\)\\)\\).catch\\(e => console.error\\(''FAIL'', e.message\\)\\)\")",
+      "Bash(pnpm generate:panchang -- --from 2082 --to 2082)",
+      "Bash(pnpm validate:panchang)",
+      "Bash(pnpm generate:panchang -- --from 2080 --to 2090)",
+      "Bash(pnpm test:*)",
+      "Bash(node --input-type=module:*)"
     ]
   }
 }

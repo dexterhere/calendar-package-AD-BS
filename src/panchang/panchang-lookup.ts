@@ -8,7 +8,7 @@ import type { PanchangEntry } from '../data/panchang/schema.js'
 import { PANCHANG_DATA } from '../data/panchang/all-years.js'
 
 /** Years for which a panchang JSON data file exists. */
-const PANCHANG_YEARS = new Set([2082, 2083, 2084, 2085, 2086, 2087])
+const PANCHANG_YEARS = new Set([2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090])
 
 /**
  * Per-year panchang cache.
