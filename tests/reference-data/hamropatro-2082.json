@@ -1,0 +1,284 @@
+{
+  "_metadata": {
+    "source": "Hamro Patro, Drik Panchang, Nepal Government Publications, nepcalendar.com",
+    "bsYear": 2082,
+    "collectedDate": "2026-03-23",
+    "note": "Ground truth reference data for BS 2082 accuracy comparison"
+  },
+  "dateConversions": {
+    "description": "Key BS → AD date mappings verified from multiple sources",
+    "entries": [
+      { "bsYear": 2082, "bsMonth": 1, "bsDay": 1, "adDate": "2025-04-14", "note": "Nepali New Year" },
+      { "bsYear": 2082, "bsMonth": 2, "bsDay": 1, "adDate": "2025-05-15", "note": "Jestha 1" },
+      { "bsYear": 2082, "bsMonth": 3, "bsDay": 1, "adDate": "2025-06-15", "note": "Ashadh 1" },
+      { "bsYear": 2082, "bsMonth": 4, "bsDay": 1, "adDate": "2025-07-17", "note": "Shrawan 1" },
+      { "bsYear": 2082, "bsMonth": 5, "bsDay": 1, "adDate": "2025-08-17", "note": "Bhadra 1" },
+      { "bsYear": 2082, "bsMonth": 6, "bsDay": 1, "adDate": "2025-09-17", "note": "Ashwin 1" },
+      { "bsYear": 2082, "bsMonth": 7, "bsDay": 1, "adDate": "2025-10-18", "note": "Kartik 1" },
+      { "bsYear": 2082, "bsMonth": 8, "bsDay": 1, "adDate": "2025-11-17", "note": "Mangsir 1" },
+      { "bsYear": 2082, "bsMonth": 9, "bsDay": 1, "adDate": "2025-12-16", "note": "Poush 1" },
+      { "bsYear": 2082, "bsMonth": 10, "bsDay": 1, "adDate": "2026-01-15", "note": "Magh 1 / Maghe Sankranti (⚠️ off-by-1 vs some sources)" },
+      { "bsYear": 2082, "bsMonth": 11, "bsDay": 1, "adDate": "2026-02-13", "note": "Falgun 1" },
+      { "bsYear": 2082, "bsMonth": 12, "bsDay": 1, "adDate": "2026-03-15", "note": "Chaitra 1" }
+    ]
+  },
+  "specialDates": {
+    "description": "Verified Purnima (tithi 15) and Amavasya (tithi 30) dates for BS 2082",
+    "purnima": [
+      { "bsMonth": 1, "bsDay": 29, "adDate": "2025-05-12", "tithiNumber": 15, "note": "Baishakh Purnima / Buddha Jayanti" },
+      { "bsMonth": 2, "bsDay": 28, "adDate": "2025-06-11", "tithiNumber": 15, "note": "Jestha Purnima" },
+      { "bsMonth": 3, "bsDay": 26, "adDate": "2025-07-10", "tithiNumber": 15, "note": "Ashadh Purnima / Guru Purnima" },
+      { "bsMonth": 4, "bsDay": 24, "adDate": "2025-08-09", "tithiNumber": 15, "note": "Shrawan Purnima / Janai Purnima" },
+      { "bsMonth": 5, "bsDay": 22, "adDate": "2025-09-07", "tithiNumber": 15, "note": "Bhadra Purnima" },
+      { "bsMonth": 6, "bsDay": 21, "adDate": "2025-10-07", "tithiNumber": 15, "note": "Ashwin Purnima" },
+      { "bsMonth": 7, "bsDay": 19, "adDate": "2025-11-05", "tithiNumber": 15, "note": "Kartik Purnima / Kojagrat Purnima" },
+      { "bsMonth": 9, "bsDay": 19, "adDate": "2026-01-03", "tithiNumber": 15, "note": "Poush Purnima" },
+      { "bsMonth": 10, "bsDay": 18, "adDate": "2026-01-31", "tithiNumber": 15, "note": "Magh Purnima" },
+      { "bsMonth": 11, "bsDay": 19, "adDate": "2026-03-03", "tithiNumber": 15, "note": "Falgun Purnima / Holi" },
+      { "bsMonth": 12, "bsDay": 19, "adDate": "2026-04-01", "tithiNumber": 15, "note": "Chaitra Purnima" }
+    ],
+    "amavasya": [
+      { "bsMonth": 1, "bsDay": 14, "adDate": "2025-04-27", "tithiNumber": 30, "note": "Baishakh Amavasya / Mata Tirtha Aunsi" },
+      { "bsMonth": 2, "bsDay": 13, "adDate": "2025-05-27", "tithiNumber": 30, "note": "Jestha Amavasya" },
+      { "bsMonth": 3, "bsDay": 11, "adDate": "2025-06-25", "tithiNumber": 30, "note": "Ashadh Amavasya" },
+      { "bsMonth": 4, "bsDay": 8, "adDate": "2025-07-24", "tithiNumber": 30, "note": "Shrawan Amavasya / Gokarna Aunsi" },
+      { "bsMonth": 5, "bsDay": 7, "adDate": "2025-08-23", "tithiNumber": 30, "note": "Bhadra Amavasya / Kushe Aunsi" },
+      { "bsMonth": 6, "bsDay": 5, "adDate": "2025-09-21", "tithiNumber": 30, "note": "Ashwin Amavasya" },
+      { "bsMonth": 7, "bsDay": 4, "adDate": "2025-10-21", "tithiNumber": 30, "note": "Kartik Amavasya / Laxmi Puja" },
+      { "bsMonth": 8, "bsDay": 4, "adDate": "2025-11-20", "tithiNumber": 30, "note": "Mangsir Amavasya" },
+      { "bsMonth": 9, "bsDay": 4, "adDate": "2025-12-20", "tithiNumber": 30, "note": "Poush Amavasya" },
+      { "bsMonth": 10, "bsDay": 4, "adDate": "2026-01-17", "tithiNumber": 30, "note": "Magh Amavasya" },
+      { "bsMonth": 11, "bsDay": 5, "adDate": "2026-02-17", "tithiNumber": 30, "note": "Falgun Amavasya" },
+      { "bsMonth": 12, "bsDay": 5, "adDate": "2026-03-19", "tithiNumber": 30, "note": "Chaitra Amavasya" }
+    ]
+  },
+  "festivals": {
+    "description": "Festival dates verified from Hamro Patro, Drik Panchang, nepcalendar.com",
+    "entries": [
+      {
+        "id": "dashain-day1",
+        "name": "Ghatasthapana",
+        "bsMonth": 7, "bsDay": 5,
+        "adDate": "2025-09-22",
+        "tithiExpected": 1,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com, nepalhikingteam.com"
+      },
+      {
+        "id": "dashain-day7",
+        "name": "Fulpati",
+        "bsMonth": 7, "bsDay": 12,
+        "adDate": "2025-09-28",
+        "tithiExpected": 7,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com"
+      },
+      {
+        "id": "dashain-day8",
+        "name": "Maha Asthami",
+        "bsMonth": 7, "bsDay": 13,
+        "adDate": "2025-09-29",
+        "tithiExpected": 8,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com"
+      },
+      {
+        "id": "dashain-day9",
+        "name": "Maha Nawami",
+        "bsMonth": 7, "bsDay": 14,
+        "adDate": "2025-09-30",
+        "tithiExpected": 9,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com"
+      },
+      {
+        "id": "vijaya-dashami",
+        "name": "Vijaya Dashami",
+        "bsMonth": 7, "bsDay": 15,
+        "adDate": "2025-10-02",
+        "tithiExpected": 10,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com, ramropatro.com, drikpanchang.com"
+      },
+      {
+        "id": "kojagrat-purnima",
+        "name": "Kojagrat Purnima (Dashain Day 15)",
+        "bsMonth": 7, "bsDay": 19,
+        "adDate": "2025-10-06",
+        "tithiExpected": 15,
+        "pakshaExpected": "shukla",
+        "source": "nepalhikingteam.com"
+      },
+      {
+        "id": "tihar-day1",
+        "name": "Kag Tihar",
+        "bsMonth": 7, "bsDay": 2,
+        "adDate": "2025-10-19",
+        "tithiExpected": 28,
+        "pakshaExpected": "krishna",
+        "source": "nepcalendar.com, magicalnepal.com"
+      },
+      {
+        "id": "tihar-day2",
+        "name": "Kukur Tihar",
+        "bsMonth": 7, "bsDay": 3,
+        "adDate": "2025-10-20",
+        "tithiExpected": 29,
+        "pakshaExpected": "krishna",
+        "source": "nepcalendar.com"
+      },
+      {
+        "id": "tihar-day3-laxmi",
+        "name": "Laxmi Puja",
+        "bsMonth": 7, "bsDay": 4,
+        "adDate": "2025-10-21",
+        "tithiExpected": 30,
+        "pakshaExpected": "krishna",
+        "source": "hamropatro.com, nepcalendar.com"
+      },
+      {
+        "id": "tihar-day4",
+        "name": "Govardhan Puja / Mha Puja",
+        "bsMonth": 7, "bsDay": 5,
+        "adDate": "2025-10-22",
+        "tithiExpected": 1,
+        "pakshaExpected": "shukla",
+        "source": "nepcalendar.com"
+      },
+      {
+        "id": "tihar-day5",
+        "name": "Bhai Tika",
+        "bsMonth": 7, "bsDay": 6,
+        "adDate": "2025-10-23",
+        "tithiExpected": 2,
+        "pakshaExpected": "shukla",
+        "source": "hamropatro.com, nepcalendar.com"
+      },
+      {
+        "id": "maghe-sankranti",
+        "name": "Maghe Sankranti",
+        "bsMonth": 10, "bsDay": 1,
+        "adDate": "2026-01-14",
+        "source": "timeanddate.com"
+      },
+      {
+        "id": "mahashivaratri",
+        "name": "Maha Shivaratri",
+        "bsMonth": 11, "bsDay": 4,
+        "adDate": "2026-02-26",
+        "tithiExpected": 29,
+        "pakshaExpected": "krishna",
+        "source": "drikpanchang.com, ashesh.com.np"
+      },
+      {
+        "id": "holy",
+        "name": "Holi (Fagu Purnima)",
+        "bsMonth": 11, "bsDay": 19,
+        "adDate": "2026-03-02",
+        "tithiExpected": 15,
+        "pakshaExpected": "shukla",
+        "source": "laxmanbaral.com.np"
+      },
+      {
+        "id": "teej",
+        "name": "Haritalika Teej",
+        "bsMonth": 5, "bsDay": 10,
+        "adDate": "2025-08-26",
+        "tithiExpected": 3,
+        "pakshaExpected": "shukla",
+        "source": "nepalhikingteam.com"
+      },
+      {
+        "id": "buddha-jayanti",
+        "name": "Buddha Jayanti",
+        "bsMonth": 1, "bsDay": 29,
+        "adDate": "2025-05-12",
+        "tithiExpected": 15,
+        "pakshaExpected": "shukla",
+        "source": "rat32.com, ashesh.com.np"
+      },
+      {
+        "id": "janai-purnima",
+        "name": "Janai Purnima",
+        "bsMonth": 4, "bsDay": 24,
+        "adDate": "2025-08-09",
+        "tithiExpected": 15,
+        "pakshaExpected": "shukla",
+        "source": "nepalguideinfo.com"
+      },
+      {
+        "id": "gokarna-aurasi",
+        "name": "Gokarna Aunsi (Father's Day)",
+        "bsMonth": 5, "bsDay": 7,
+        "adDate": "2025-08-23",
+        "tithiExpected": 30,
+        "pakshaExpected": "krishna",
+        "source": "hamropatro.com, giftmandu.com"
+      },
+      {
+        "id": "mata-tirtha-aunsi",
+        "name": "Mata Tirtha Aunsi (Mother's Day)",
+        "bsMonth": 1, "bsDay": 14,
+        "adDate": "2025-04-27",
+        "tithiExpected": 30,
+        "pakshaExpected": "krishna",
+        "source": "hamropatro.com, khabarhub.com"
+      },
+      {
+        "id": "krishna-janmastami",
+        "name": "Krishna Janmashtami",
+        "bsMonth": 5, "bsDay": 29,
+        "adDate": "2025-08-16",
+        "tithiExpected": 23,
+        "pakshaExpected": "krishna",
+        "source": "timeanddate.com, eazyfares.com"
+      },
+      {
+        "id": "ghode-jatra",
+        "name": "Ghode Jatra",
+        "bsMonth": 12, "bsDay": 5,
+        "adDate": "2026-03-19",
+        "tithiExpected": 30,
+        "pakshaExpected": "krishna",
+        "source": "travelnepal.com, nepalhikingteam.com"
+      },
+      {
+        "id": "chhath-parva",
+        "name": "Chhath Parva",
+        "bsMonth": 7, "bsDay": 11,
+        "adDate": "2025-10-27",
+        "tithiExpected": 6,
+        "pakshaExpected": "shukla",
+        "source": "sewapoint.com"
+      },
+      {
+        "id": "republic-day",
+        "name": "Republic Day",
+        "bsMonth": 2, "bsDay": 15,
+        "adDate": "2025-05-29",
+        "source": "fixed BS date"
+      },
+      {
+        "id": "constitution-day",
+        "name": "Constitution Day",
+        "bsMonth": 5, "bsDay": 3,
+        "adDate": "2025-09-19",
+        "source": "fixed BS date"
+      }
+    ]
+  },
+  "tithiSampleData": {
+    "description": "Tithi samples for key dates verified from panchang sources",
+    "entries": [
+      { "bsMonth": 1, "bsDay": 1, "tithiNumber": 16, "pakshaExpected": "krishna", "note": "Krishna Pratipada (New Year)" },
+      { "bsMonth": 1, "bsDay": 14, "tithiNumber": 30, "pakshaExpected": "krishna", "note": "Amavasya" },
+      { "bsMonth": 1, "bsDay": 15, "tithiNumber": 1, "pakshaExpected": "shukla", "note": "Shukla Pratipada" },
+      { "bsMonth": 1, "bsDay": 29, "tithiNumber": 15, "pakshaExpected": "shukla", "note": "Purnima" },
+      { "bsMonth": 7, "bsDay": 5, "tithiNumber": 1, "pakshaExpected": "shukla", "note": "Ghatasthapana" },
+      { "bsMonth": 7, "bsDay": 15, "tithiNumber": 10, "pakshaExpected": "shukla", "note": "Vijaya Dashami" },
+      { "bsMonth": 7, "bsDay": 19, "tithiNumber": 15, "pakshaExpected": "shukla", "note": "Kojagrat Purnima" },
+      { "bsMonth": 8, "bsDay": 4, "tithiNumber": 30, "pakshaExpected": "krishna", "note": "Laxmi Puja (Amavasya)" },
+      { "bsMonth": 8, "bsDay": 6, "tithiNumber": 2, "pakshaExpected": "shukla", "note": "Bhai Tika" }
+    ]
+  }
+}

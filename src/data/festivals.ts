@@ -208,9 +208,9 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     category: 'cultural',
     description: { en: 'First day of Tihar, worship of crow as messenger of Yama', ne: 'तिहारको पहिलो दिन, यमको दूतको रूपमा कौवाको पूजा' },
     isPublicHoliday: false,
-    tithi: 13,
+    tithi: 28, // Krishna Trayodashi
     paksha: 'krishna',
-    searchMonth: 8, // Kartik
+    searchMonth: 7, // Kartik
     duration: 1
   },
   {
@@ -221,9 +221,9 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     category: 'cultural',
     description: { en: 'Second day of Tihar, worship of dog as guardian', ne: 'तिहारको दोस्रो दिन, रक्षकको रूपमा कुकुरको पूजा' },
     isPublicHoliday: false,
-    tithi: 14,
+    tithi: 29, // Krishna Chaturdashi
     paksha: 'krishna',
-    searchMonth: 8,
+    searchMonth: 7,
     duration: 1
   },
   {
@@ -236,7 +236,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 30, // Amavasya
     paksha: 'krishna',
-    searchMonth: 8,
+    searchMonth: 7,
     duration: 1
   },
   {
@@ -249,7 +249,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 1,
     paksha: 'shukla',
-    searchMonth: 8,
+    searchMonth: 7,
     duration: 1
   },
   {
@@ -262,7 +262,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 2,
     paksha: 'shukla',
-    searchMonth: 8,
+    searchMonth: 7,
     duration: 1
   },
 
@@ -386,7 +386,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     category: 'religious',
     description: { en: 'Great night of Shiva, fasting and temple visits', ne: 'शिवको महान रात्रि, व्रत र मन्दिर दर्शन' },
     isPublicHoliday: true,
-    tithi: 30, // Amavasya (Chaturdashi in some traditions)
+    tithi: 29, // Chaturdashi
     paksha: 'krishna',
     searchMonth: 11, // Falgun
     duration: 1
@@ -401,7 +401,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 3,
     paksha: 'shukla',
-    searchMonth: 6, // Bhadra
+    searchMonth: 5, // Bhadra
     duration: 1
   },
   {
@@ -414,7 +414,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 15, // Purnima
     paksha: 'shukla',
-    searchMonth: 5, // Shrawan
+    searchMonth: 4, // Shrawan
     duration: 1
   },
   {
@@ -465,7 +465,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 15,
     paksha: 'shukla',
-    searchMonth: 5,
+    searchMonth: 4,
     duration: 1
   },
   {
@@ -476,9 +476,9 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     category: 'religious',
     description: { en: 'Birthday of Lord Krishna, temple visits and fasting', ne: 'भगवान कृष्णको जन्मजयन्ती, मन्दिर दर्शन र व्रत' },
     isPublicHoliday: false,
-    tithi: 8, // Ashtami
+    tithi: 23, // Ashtami (15 + 8)
     paksha: 'krishna',
-    searchMonth: 5, // Bhadra (sometimes Shrawan)
+    searchMonth: 5, // Bhadra
     duration: 1
   },
   {
@@ -504,7 +504,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 6, // Shashthi
     paksha: 'shukla',
-    searchMonth: 11, // Kartik (after Tihar)
+    searchMonth: 7, // Kartik
     duration: 4
   },
   {
@@ -588,7 +588,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     type: 'festival',
     category: 'religious',
     isPublicHoliday: true,
-    tithi: 14, // Chaturdashi
+    tithi: 29, // Chaturdashi
     paksha: 'krishna',
     searchMonth: 11, // Falgun
     duration: 1
@@ -609,13 +609,14 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
   {
     id: 'ghode-jatra',
     name: { en: 'Ghode Jatra', ne: 'घोडे जात्रा' },
-    method: 'fixed_bs_date',
+    method: 'tithi_based',
     type: 'festival',
     category: 'cultural',
     description: { en: 'Horse racing festival at Tundikhel, Kathmandu', ne: 'टुँडिखेलमा घोडदौड पर्व, काठमाडौं' },
     isPublicHoliday: true,
-    month: 12, // Chaitra
-    day: 1, // Approximate, varies
+    tithi: 30, // Amavasya
+    paksha: 'krishna',
+    searchMonth: 12, // Chaitra
     duration: 1
   },
   {
@@ -654,7 +655,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 15, // Purnima
     paksha: 'shukla',
-    searchMonth: 5, // Shrawan
+    searchMonth: 4, // Shrawan
     duration: 1
   },
   {

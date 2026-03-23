@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "description": "Bikram Sambat calendar engine — conversion, grid generation, panchang, and festival data for Nepal",
   "author": "Prince Bhagat <dexter@meroevent.com>",
+  "contributors": [
+    {
+      "name": "Prince Bhagat",
+      "email": "dexter@meroevent.com",
+      "callsign": "Buggy Buck",
+      "role": "Lead Developer & Architect"
+    }
+  ],
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -29,7 +37,9 @@
     "prepublishOnly": "pnpm run build && pnpm run test",
     "generate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-panchang.ts",
     "validate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/validate-panchang.ts",
-    "collect:holidays": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/collect-holidays.ts"
+    "collect:holidays": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/collect-holidays.ts",
+    "accuracy:compare": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/accuracy-comparison.ts",
+    "accuracy:report": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-accuracy-report.ts"
   },
   "devDependencies": {
     "@ishubhamx/panchangam-js": "^2.2.6",
