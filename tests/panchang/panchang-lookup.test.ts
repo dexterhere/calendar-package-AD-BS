@@ -8,14 +8,22 @@ describe('getPanchang', () => {
     await ensurePanchangYear(2082)
   })
 
-  it('returns null for dates outside the pre-computed range', () => {
-    // BS 2079 is before our data range (2080–2090)
-    const bs2079 = { year: 2079, month: 1, day: 1 }
-    expect(getPanchang(bs2079)).toBeNull()
-
-    // BS 2099 is not loaded (far future)
+  it('returns null for dates outside the supported BS calendar range', () => {
+    // BS 2099 is outside the BS calendar data range (max 2090) — bsToAd throws
     const bs2099 = { year: 2099, month: 5, day: 15 }
     expect(getPanchang(bs2099)).toBeNull()
+  })
+
+  it('returns valid panchang for out-of-precomputed-range years via fallback', () => {
+    // BS 2079 is before the precomputed range (2080–2090) but within bsToAd range.
+    // The fallback (computePanchang) should return valid data.
+    const bs2079 = { year: 2079, month: 1, day: 1 }
+    const result = getPanchang(bs2079)
+    expect(result).not.toBeNull()
+    expect(result!.tithi.number).toBeGreaterThanOrEqual(1)
+    expect(result!.tithi.number).toBeLessThanOrEqual(30)
+    expect(['shukla', 'krishna']).toContain(result!.paksha)
+    expect(result!.tithiType).toBe('normal') // fallback always returns 'normal'
   })
 
   it('returns null for unloaded years within range', () => {

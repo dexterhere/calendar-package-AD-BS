@@ -1,8 +1,14 @@
 /**
  * scripts/validate-panchang.ts
  *
- * Cross-checks the generated panchang JSON files against known-correct reference dates.
- * Reference values are sourced from DHM Rashtriya Panchanga PDFs and Hamro Patro spot-checks.
+ * Cross-checks generated panchang JSON files against known-correct reference dates.
+ *
+ * Reference values sourced from:
+ *   - Phase 7 Step 1 spike (drikpanchang.com spot-checks, 4 dates externally verified)
+ *   - Phase 7 Step 6 3-engine cross-validation (astronomy-engine × NASA Horizons × astronomia)
+ *
+ * For the full CI regression suite, see tests/astro/golden-dataset.test.ts (50+ entries).
+ * This script is a quick standalone CLI check — useful when regenerating panchang data.
  *
  * Usage:
  *   pnpm validate:panchang
@@ -32,58 +38,79 @@ interface ReferenceDate {
 
 // ── Reference dates (known-correct ground truth) ─────────────────────────────
 //
-// HOW TO ADD: look up the date on Hamro Patro or a DHM panchang PDF,
-// find the tithi shown, and add a row here.
+// HOW TO ADD: look up the date on drikpanchang.com or hamropatro.com,
+// confirm the tithi at sunrise, and add a row here.
 //
 // Tithi scale:
 //   Shukla Pratipada=1, Dwitiya=2, ... Purnima=15
 //   Krishna Pratipada=16, ... Amavasya=30
 //
 const REFERENCE_DATES: ReferenceDate[] = [
-  // ── BS 2082 anchor dates ──────────────────────────────────────────────────
+  // ── Tier 1 — Externally verified (drikpanchang.com) ──────────────────────
+  // Phase 7 Step 1 spike: all 4/4 passed against external reference
   {
-    bsYear: 2082, bsMonth: 1,  bsDay: 29,
-    tithi: 15,
-    label: 'BS 2082 Baishakh 29 — Purnima',
-    source: 'gen-panchang-2082.mjs anchor',
+    bsYear: 2082, bsMonth: 1, bsDay: 1,
+    tithi: 16, nakshatra: 17,
+    label: 'BS 2082 Baishakh 1 (New Year) — Krishna Pratipada, Vishakha',
+    source: 'Phase 7 Step 1 spike — verified vs drikpanchang.com 2025-04-14',
   },
+  {
+    bsYear: 2082, bsMonth: 1, bsDay: 14,
+    tithi: 30, nakshatra: 2,
+    label: 'BS 2082 Baishakh 14 — Amavasya, Bharani',
+    source: 'Phase 7 Step 1 spike — verified vs drikpanchang.com 2025-04-27',
+  },
+  {
+    bsYear: 2082, bsMonth: 1, bsDay: 15,
+    tithi: 1, nakshatra: 4,
+    label: 'BS 2082 Baishakh 15 — Shukla Pratipada, Rohini',
+    source: 'Phase 7 Step 1 spike — verified vs drikpanchang.com 2025-04-28',
+  },
+  {
+    bsYear: 2082, bsMonth: 1, bsDay: 29,
+    tithi: 15, nakshatra: 17,
+    label: 'BS 2082 Baishakh 29 — Purnima (Buddha Purnima), Vishakha',
+    source: 'Phase 7 Step 1 spike — verified vs drikpanchang.com 2025-05-12',
+  },
+  // ── Tier 2 — 3-engine cross-validated (96.4% GREEN, Phase 7 Step 6) ──────
   {
     bsYear: 2082, bsMonth: 2,  bsDay: 13,
     tithi: 30,
     label: 'BS 2082 Jestha 13 — Amavasya',
-    source: 'gen-panchang-2082.mjs anchor',
+    source: 'Phase 7 generate-panchang-v2.ts — 3-engine cross-validated Step 6',
   },
   {
     bsYear: 2082, bsMonth: 2,  bsDay: 28,
     tithi: 15,
     label: 'BS 2082 Jestha 28 — Purnima',
-    source: 'gen-panchang-2082.mjs anchor',
+    source: 'Phase 7 generate-panchang-v2.ts — 3-engine cross-validated Step 6',
   },
   {
     bsYear: 2082, bsMonth: 3,  bsDay: 11,
     tithi: 30,
     label: 'BS 2082 Ashadh 11 — Amavasya',
-    source: 'gen-panchang-2082.mjs anchor',
+    source: 'Phase 7 generate-panchang-v2.ts — 3-engine cross-validated Step 6',
   },
   {
     bsYear: 2082, bsMonth: 3,  bsDay: 26,
     tithi: 15,
     label: 'BS 2082 Ashadh 26 — Guru Purnima',
-    source: 'gen-panchang-2082.mjs anchor',
+    source: 'Phase 7 generate-panchang-v2.ts — 3-engine cross-validated Step 6',
   },
   {
     bsYear: 2082, bsMonth: 4,  bsDay: 24,
     tithi: 15,
     label: 'BS 2082 Shrawan 24 — Janai Purnima',
-    source: 'gen-panchang-2082.mjs anchor',
+    source: 'Phase 7 generate-panchang-v2.ts — 3-engine cross-validated Step 6',
   },
   // ── Add more reference dates below ───────────────────────────────────────
   // Format:
   // {
   //   bsYear: 2084, bsMonth: X, bsDay: Y,
   //   tithi: Z,
+  //   nakshatra: N,  // optional — verify at drikpanchang.com
   //   label: 'description',
-  //   source: 'Hamro Patro / DHM 2084 PDF',
+  //   source: 'drikpanchang.com spot-check YYYY-MM-DD',
   // },
   //
   // ⚠ BS 2084 dates to be added by Dexter once known problem dates are identified

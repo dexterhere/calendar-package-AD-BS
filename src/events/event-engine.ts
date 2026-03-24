@@ -142,6 +142,17 @@ function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
       if (tithiMatches && pakshaMatches && monthMatches) {
         isMatch = true
       }
+
+      // Kshaya tithi: the festival's tithi completes entirely within this solar day
+      // without appearing at sunrise. Its observance falls on today (the preceding day).
+      // e.g. today tithi=10 (Dashami), tithiType='kshaya' → Ekadashi (11) is kshaya here.
+      if (!isMatch && panchang.tithiType === 'kshaya' && festival.tithi !== undefined && monthMatches) {
+        const kshayaTithi = (panchang.tithi.number % 30) + 1
+        const kshayaPaksha: 'shukla' | 'krishna' = kshayaTithi <= 15 ? 'shukla' : 'krishna'
+        if (festival.tithi === kshayaTithi && festival.paksha === kshayaPaksha) {
+          isMatch = true
+        }
+      }
     }
 
     if (isMatch) {

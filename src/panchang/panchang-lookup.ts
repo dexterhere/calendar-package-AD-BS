@@ -4,8 +4,14 @@ import { adToBs } from '../converter/ad-to-bs.js'
 import { PAKSHA_NAMES } from '../i18n/paksha-names.js'
 import { getTithiByNumber } from '../i18n/tithi-names.js'
 import { getNakshatraByNumber } from '../i18n/nakshatra-names.js'
+import { getYogaByNumber } from '../i18n/yoga-names.js'
+import { getKaranaByNumber } from '../astro/karana-names.js'
 import type { PanchangEntry } from '../data/panchang/schema.js'
 import { PANCHANG_DATA } from '../data/panchang/all-years.js'
+import { computeFallback, type FallbackOptions } from './compute-fallback.js'
+import { KTM_LAT, KTM_LON } from '../astro/constants.js'
+
+export type { FallbackOptions }
 
 /** Years for which a panchang JSON data file exists. */
 const PANCHANG_YEARS = new Set([2080, 2081, 2082, 2083, 2084, 2085, 2086, 2087, 2088, 2089, 2090])
@@ -66,17 +72,40 @@ export async function ensurePanchangYear(bsYear: number): Promise<void> {
 }
 
 /**
- * Returns panchang data (tithi, paksha, nakshatra) for a given date.
+ * Returns panchang data for a given date.
  *
  * - Accepts either a Gregorian Date or a BSDate.
- * - Returns null if the date is outside the pre-computed data range, or if
- *   the year's data has not been loaded yet (call ensurePanchangYear first).
- * - This function is synchronous and non-blocking; use ensurePanchangYear()
- *   to pre-load data before calling getPanchang() in bulk.
+ * - `options` can specify a custom observer location (lat/lon).
+ *
+ * Fast path (precomputed data): used when the year is in the precomputed range
+ * (BS 2080–2090) and no custom location is provided. Call ensurePanchangYear()
+ * before bulk queries to avoid async gaps.
+ *
+ * Fallback path (live computation): used when the year is outside the precomputed
+ * range OR a non-Kathmandu location is requested. Falls back to computePanchang()
+ * (astronomy-engine, JPL-validated). Results are LRU-cached per session.
+ *
+ * Returns null only if the date is entirely outside the supported BS calendar range
+ * (BS 2000–2090) or if computation fails.
  */
-export function getPanchang(date: Date | BSDate): PanchangInfo | null {
+export function getPanchang(date: Date | BSDate, options?: FallbackOptions): PanchangInfo | null {
   const bsDate: BSDate = date instanceof Date ? adToBs(date) : date
-  return lookupSync(bsDate)
+
+  const lat = options?.lat ?? KTM_LAT
+  const lon = options?.lon ?? KTM_LON
+  const isKathmandu = lat === KTM_LAT && lon === KTM_LON
+
+  // Fast path: precomputed data available and no custom location
+  if (isKathmandu && PANCHANG_YEARS.has(bsDate.year)) {
+    return lookupSync(bsDate)
+  }
+
+  // Fallback: live computation for out-of-range years or custom locations
+  try {
+    return computeFallback(bsDate, options)
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -94,6 +123,11 @@ function entryToPanchangInfo(entry: PanchangEntry): PanchangInfo {
   const paksha: 'shukla' | 'krishna' = tithiNum <= 15 ? 'shukla' : 'krishna'
   const tithiDef = getTithiByNumber(tithiNum)
 
+  const tithiType: PanchangInfo['tithiType'] =
+    entry.tt === 'k' ? 'kshaya' :
+    entry.tt === 'v' ? 'vriddhi' :
+    'normal'
+
   const info: PanchangInfo = {
     tithi: {
       name: tithiDef.en,
@@ -102,11 +136,22 @@ function entryToPanchangInfo(entry: PanchangEntry): PanchangInfo {
     },
     paksha,
     pakshaName: PAKSHA_NAMES[paksha],
+    tithiType,
   }
 
   if (entry.n !== undefined) {
     const nDef = getNakshatraByNumber(entry.n)
     info.nakshatra = { name: nDef.en, nameNe: nDef.ne }
+  }
+
+  if (entry.y !== undefined) {
+    const yDef = getYogaByNumber(entry.y)
+    info.yoga = { name: yDef.en, nameNe: yDef.ne, number: entry.y }
+  }
+
+  if (entry.k !== undefined) {
+    const kDef = getKaranaByNumber(entry.k)
+    info.karana = { name: kDef.en, nameNe: kDef.ne, number: entry.k, inauspicious: kDef.inauspicious }
   }
 
   return info

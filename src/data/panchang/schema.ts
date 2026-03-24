@@ -32,4 +32,27 @@ export interface PanchangEntry {
    * 24=Shatabhisha, 25=Purva Bhadrapada, 26=Uttara Bhadrapada, 27=Revati
    */
   n?: number
+  /**
+   * Yoga index 1–27 (optional — included from Phase 7 v2 data onward).
+   * 1=Vishkambha … 27=Vaidhriti. Derived from (sun_lon + moon_lon) % 360.
+   */
+  y?: number
+  /**
+   * Karana number 1–11 (optional — included from Phase 7 v2 data onward).
+   * 1=Bava … 7=Vishti (movable), 8=Shakuni, 9=Chatushpada, 10=Nagava, 11=Kimstughna (fixed).
+   */
+  k?: number
+  /**
+   * Tithi edge-case type (omitted for normal days).
+   *
+   * 'k' = Kshaya: the tithi numbered (t + 1) completes entirely within this solar day
+   *       without appearing at sunrise. Its observance falls on this day.
+   *       e.g. t=10, tt='k' → Ekadashi (11) is the Kshaya tithi for this day.
+   *
+   * 'v' = Vriddhi: this tithi (t) also appeared at yesterday's sunrise.
+   *       The same tithi rules two consecutive solar days.
+   *
+   * Populated by the panchang generator (Step 8). Not present in pre-Phase-7 data.
+   */
+  tt?: 'k' | 'v'
 }
