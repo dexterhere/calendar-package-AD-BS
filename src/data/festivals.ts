@@ -14,7 +14,7 @@
  * - Common cultural knowledge
  */
 
-export type FestivalDeterminationMethod = 'fixed_bs_date' | 'tithi_based' | 'government_declared'
+export type FestivalDeterminationMethod = 'fixed_bs_date' | 'tithi_based' | 'government_declared' | 'fixed_ad_date'
 
 export interface FestivalDefinition {
   /** Unique identifier for the festival */
@@ -54,6 +54,12 @@ export interface FestivalDefinition {
   /** Fixed BS date for government holidays */
   govMonth?: number
   govDay?: number
+
+  // For FIXED_AD_DATE method:
+  /** Gregorian month (1-12) for fixed_ad_date */
+  adMonth?: number
+  /** Gregorian day (1-31) for fixed_ad_date */
+  adDay?: number
 }
 
 /**
@@ -80,7 +86,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 1,
     paksha: 'shukla',
-    searchMonth: 7, // Ashwin
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -92,7 +98,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 7,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -105,7 +111,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 8,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -118,7 +124,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 9,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -131,7 +137,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 10,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -143,7 +149,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 11,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -155,7 +161,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 12,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -167,7 +173,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 13,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -179,7 +185,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 14,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
   {
@@ -192,7 +198,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 15,
     paksha: 'shukla',
-    searchMonth: 7,
+    searchMonth: 6, // Ashwin
     duration: 1
   },
 
@@ -358,7 +364,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     type: 'festival',
     category: 'cultural',
     isPublicHoliday: false,
-    month: 4, // Bhadra
+    month: 5, // Bhadra
     day: 28,
     duration: 1
   },
@@ -370,7 +376,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     category: 'national',
     description: { en: 'Commemoration of 2072 BS constitution promulgation', ne: '२०७२ सालको संविधान जारी भएको दिन' },
     isPublicHoliday: true,
-    month: 5, // Ashwin
+    month: 6, // Ashwin
     day: 3,
     duration: 1
   },
@@ -378,19 +384,6 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
   // ───────────────────────────────────────────────────────────────────────────
   // OTHER TITHI-BASED FESTIVALS
   // ───────────────────────────────────────────────────────────────────────────
-  {
-    id: 'shivaratri',
-    name: { en: 'Maha Shivaratri', ne: 'महा शिवरात्री' },
-    method: 'tithi_based',
-    type: 'festival',
-    category: 'religious',
-    description: { en: 'Great night of Shiva, fasting and temple visits', ne: 'शिवको महान रात्रि, व्रत र मन्दिर दर्शन' },
-    isPublicHoliday: true,
-    tithi: 29, // Chaturdashi
-    paksha: 'krishna',
-    searchMonth: 11, // Falgun
-    duration: 1
-  },
   {
     id: 'teej',
     name: { en: 'Harijika Teej (Women\'s Festival)', ne: 'हरितालिका तीज' },
@@ -427,7 +420,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: true,
     tithi: 30, // Amavasya
     paksha: 'krishna',
-    searchMonth: 5, // Shrawan
+    searchMonth: 5, // Bhadra
     duration: 1
   },
   {
@@ -642,7 +635,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 5, // Panchami
     paksha: 'shukla',
-    searchMonth: 5, // Shrawan
+    searchMonth: 4, // Shrawan
     duration: 1
   },
   {
@@ -680,7 +673,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 12, // Dwadashi
     paksha: 'shukla',
-    searchMonth: 6, // Bhadra
+    searchMonth: 5, // Bhadra
     duration: 8
   },
   {
@@ -729,7 +722,7 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     isPublicHoliday: false,
     tithi: 6, // Shashthi
     paksha: 'shukla',
-    searchMonth: 4, // Chaitra
+    searchMonth: 12, // Chaitra
     duration: 4
   },
   {
@@ -756,5 +749,109 @@ export const BASE_FESTIVALS: readonly FestivalDefinition[] = [
     paksha: 'krishna',
     searchMonth: 1, // All months
     duration: 1
+  },
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // INTERNATIONAL OBSERVANCE DAYS (fixed Gregorian dates)
+  // ───────────────────────────────────────────────────────────────────────────
+  {
+    id: 'international-womens-day',
+    name: { en: "International Women's Day (UN)", ne: 'अन्तर्राष्ट्रिय महिला दिवस (UN)' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN observance for gender equality and women\'s rights', ne: 'लैङ्गिक समानता र महिला अधिकारको लागि संयुक्त राष्ट्रको दिवस' },
+    isPublicHoliday: false,
+    adMonth: 3, adDay: 8,
+  },
+  {
+    id: 'world-water-day',
+    name: { en: 'World Water Day', ne: 'विश्व जल दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN observance for freshwater conservation', ne: 'मिठो पानीको संरक्षणको लागि संयुक्त राष्ट्रको दिवस' },
+    isPublicHoliday: false,
+    adMonth: 3, adDay: 22,
+  },
+  {
+    id: 'world-health-day',
+    name: { en: 'World Health Day', ne: 'विश्व स्वास्थ्य दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'WHO annual observance to raise awareness about health', ne: 'स्वास्थ्यप्रति जागरुकता बढाउन WHO को वार्षिक दिवस' },
+    isPublicHoliday: false,
+    adMonth: 4, adDay: 7,
+  },
+  {
+    id: 'world-earth-day',
+    name: { en: 'World Earth Day', ne: 'विश्व पृथ्वी दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'Annual event to raise awareness about environmental protection', ne: 'पर्यावरण संरक्षणप्रति जागरुकताको लागि वार्षिक दिवस' },
+    isPublicHoliday: false,
+    adMonth: 4, adDay: 22,
+  },
+  {
+    id: 'world-environment-day',
+    name: { en: 'World Environment Day', ne: 'विश्व वातावरण दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN\'s principal vehicle for encouraging awareness and action for the environment', ne: 'वातावरणका लागि जागरुकता र कार्यका लागि संयुक्त राष्ट्रको प्रमुख माध्यम' },
+    isPublicHoliday: false,
+    adMonth: 6, adDay: 5,
+  },
+  {
+    id: 'international-yoga-day',
+    name: { en: 'International Yoga Day', ne: 'अन्तर्राष्ट्रिय योग दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN observance to raise awareness about the benefits of yoga', ne: 'योगको फाइदाप्रति जागरुकताको लागि संयुक्त राष्ट्रको दिवस' },
+    isPublicHoliday: false,
+    adMonth: 6, adDay: 21,
+  },
+  {
+    id: 'international-democracy-day',
+    name: { en: 'International Day of Democracy', ne: 'अन्तर्राष्ट्रिय लोकतन्त्र दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN observance to promote democratic governance', ne: 'लोकतान्त्रिक शासनलाई बढावा दिन संयुक्त राष्ट्रको दिवस' },
+    isPublicHoliday: false,
+    adMonth: 9, adDay: 15,
+  },
+  {
+    id: 'world-mental-health-day',
+    name: { en: 'World Mental Health Day', ne: 'विश्व मानसिक स्वास्थ्य दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'WHO observance to raise awareness about mental health', ne: 'मानसिक स्वास्थ्यप्रति जागरुकताको लागि WHO को दिवस' },
+    isPublicHoliday: false,
+    adMonth: 10, adDay: 10,
+  },
+  {
+    id: 'international-childrens-day-un',
+    name: { en: "Universal Children's Day (UN)", ne: 'अन्तर्राष्ट्रिय बाल दिवस (UN)' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'cultural',
+    description: { en: 'UN observance for the welfare and rights of children worldwide', ne: 'विश्वभरका बालबालिकाको कल्याण र अधिकारका लागि UN को दिवस' },
+    isPublicHoliday: false,
+    adMonth: 11, adDay: 20,
+  },
+  {
+    id: 'international-human-rights-day',
+    name: { en: 'International Human Rights Day', ne: 'अन्तर्राष्ट्रिय मानव अधिकार दिवस' },
+    method: 'fixed_ad_date',
+    type: 'festival',
+    category: 'general',
+    description: { en: 'UN observance marking the adoption of the Universal Declaration of Human Rights', ne: 'मानव अधिकारको विश्वव्यापी घोषणापत्र अपनाइएको स्मृतिमा UN को दिवस' },
+    isPublicHoliday: false,
+    adMonth: 12, adDay: 10,
   },
 ]

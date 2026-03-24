@@ -16,7 +16,7 @@ const VERIFIED_FESTIVALS = [
   {
     id: 'dashain-day1',
     name: 'Ghatasthapana',
-    bsMonth: 7, bsDay: 5,
+    bsMonth: 6, bsDay: 6,
     adDate: '2025-09-22',
     tithi: 1, paksha: 'shukla' as const,
     source: 'Hamro Patro, Nepal Hiking Team',
@@ -24,28 +24,28 @@ const VERIFIED_FESTIVALS = [
   {
     id: 'dashain-day7',
     name: 'Fulpati',
-    bsMonth: 7, bsDay: 12,
+    bsMonth: 6, bsDay: 13,
     tithi: 7, paksha: 'shukla' as const,
     source: 'Hamro Patro',
   },
   {
     id: 'dashain-day8',
     name: 'Maha Asthami',
-    bsMonth: 7, bsDay: 13,
+    bsMonth: 6, bsDay: 14,
     tithi: 8, paksha: 'shukla' as const,
     source: 'Hamro Patro',
   },
   {
     id: 'dashain-day9',
     name: 'Maha Nawami',
-    bsMonth: 7, bsDay: 14,
+    bsMonth: 6, bsDay: 15,
     tithi: 9, paksha: 'shukla' as const,
     source: 'Hamro Patro',
   },
   {
     id: 'vijaya-dashami',
     name: 'Vijaya Dashami',
-    bsMonth: 7, bsDay: 15,
+    bsMonth: 6, bsDay: 16,
     adDate: '2025-10-02',
     tithi: 10, paksha: 'shukla' as const,
     source: 'Hamro Patro, Ramro Patro, Drik Panchang',
@@ -53,7 +53,7 @@ const VERIFIED_FESTIVALS = [
   {
     id: 'kojagrat-purnima',
     name: 'Kojagrat Purnima',
-    bsMonth: 7, bsDay: 19,
+    bsMonth: 6, bsDay: 21,
     tithi: 15, paksha: 'shukla' as const,
     source: 'Nepal Hiking Team',
   },
@@ -114,7 +114,7 @@ const VERIFIED_FESTIVALS = [
   {
     id: 'constitution-day',
     name: 'Constitution Day',
-    bsMonth: 5, bsDay: 3,
+    bsMonth: 6, bsDay: 3,
     source: 'Fixed BS date',
   },
 
@@ -182,13 +182,13 @@ describe('Festival Date Accuracy (Reference Comparison)', () => {
 
   describe('Dashain spans correct days', () => {
     it('Ashwin month has all Dashain events (Day 1 through 15)', () => {
-      const events = getEventsForMonth(2082, 7) // Ashwin = month 7
+      const events = getEventsForMonth(2082, 6) // Ashwin = month 6
       const dashainIds = events.filter(e => e.id.includes('dashain') || e.id === 'vijaya-dashami' || e.id === 'kojagrat-purnima')
       expect(dashainIds.length).toBeGreaterThanOrEqual(5)
     })
 
     it('Vijaya Dashami is marked as public holiday', () => {
-      const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
+      const events = getEventsForDate({ year: 2082, month: 6, day: 16 })
       const vd = events.find(e => e.id === 'vijaya-dashami')
       expect(vd).toBeDefined()
       expect(vd!.isPublicHoliday).toBe(true)

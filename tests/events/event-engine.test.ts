@@ -26,7 +26,7 @@ describe('Phase 4: Event Engine', () => {
     })
 
     it('returns Constitution Day for Ashwin 3', () => {
-      const events = getEventsForDate({ year: 2082, month: 5, day: 3 })
+      const events = getEventsForDate({ year: 2082, month: 6, day: 3 })
       const constitutionDay = events.find(e => e.id === 'constitution-day')
       expect(constitutionDay).toBeDefined()
       expect(constitutionDay!.isPublicHoliday).toBe(true)
@@ -53,8 +53,8 @@ describe('Phase 4: Event Engine', () => {
 
   describe('getEventsForDate - Tithi-Based Festivals', () => {
     it('returns Vijaya Dashami for Ashwin Shukla Dashami (tithi 10)', () => {
-      // In BS 2082, Ashwin Shukla Dashami falls on Ashwin 15 — verified from generated data
-      const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
+      // In BS 2082, Ashwin Shukla Dashami falls on Ashwin 16
+      const events = getEventsForDate({ year: 2082, month: 6, day: 16 })
       const vijayaDashami = events.find(e => e.id === 'vijaya-dashami')
       expect(vijayaDashami).toBeDefined()
       expect(vijayaDashami!.name.en).toContain('Vijaya Dashami')
@@ -62,7 +62,7 @@ describe('Phase 4: Event Engine', () => {
 
     it('returns Laxmi Puja for Kartik Krishna Amavasya (tithi 30)', () => {
       // In BS 2082, Kartik Amavasya falls on Kartik 4
-      const events = getEventsForDate({ year: 2082, month: 8, day: 4 })
+      const events = getEventsForDate({ year: 2082, month: 7, day: 4 })
       const laxmiPuja = events.find(e => e.id === 'tihar-day3-laxmi')
       expect(laxmiPuja).toBeDefined()
       expect(laxmiPuja!.name.en).toContain('Laxmi Puja')
@@ -70,7 +70,7 @@ describe('Phase 4: Event Engine', () => {
 
     it('returns Bhai Tika for Kartik Shukla Dwitiya (tithi 2)', () => {
       // In BS 2082, Kartik Shukla Dwitiya falls on Kartik 6
-      const events = getEventsForDate({ year: 2082, month: 8, day: 6 })
+      const events = getEventsForDate({ year: 2082, month: 7, day: 6 })
       const bhaiTika = events.find(e => e.id === 'tihar-day5')
       expect(bhaiTika).toBeDefined()
       expect(bhaiTika!.name.en).toContain('Bhai Tika')
@@ -96,38 +96,38 @@ describe('Phase 4: Event Engine', () => {
   describe('getEventsForDate - Multi-day Festivals', () => {
     it('returns multiple Dashain days', () => {
       // Dashain spans 15 days from Ashwin Shukla Pratipada to Purnima
-      // In our 2082 data, Pratipada (tithi 1) falls on Ashwin 5
-      const day1Events = getEventsForDate({ year: 2082, month: 7, day: 5 })
+      // In our 2082 data, Pratipada (tithi 1) falls on Ashwin 6
+      const day1Events = getEventsForDate({ year: 2082, month: 6, day: 6 })
       const hasDashainDay1 = day1Events.some(e => e.id === 'dashain-day1')
       expect(hasDashainDay1).toBe(true)
     })
 
     it('returns Ghatasthapana on Dashain day 1', () => {
-      // In 2082 data, Pratipada (tithi 1) is on Ashwin 5
-      const events = getEventsForDate({ year: 2082, month: 7, day: 5 })
+      // In 2082 data, Pratipada (tithi 1) is on Ashwin 6
+      const events = getEventsForDate({ year: 2082, month: 6, day: 6 })
       const ghatasthapana = events.find(e => e.id === 'dashain-day1')
       expect(ghatasthapana).toBeDefined()
       expect(ghatasthapana!.name.en).toContain('Ghatasthapana')
     })
 
     it('returns Fulpati on Dashain day 7', () => {
-      // Saptami (tithi 7) in 2082 Ashwin is on day 12 — verified from generated data
-      const events = getEventsForDate({ year: 2082, month: 7, day: 12 })
+      // Saptami (tithi 7) in 2082 Ashwin is on day 13
+      const events = getEventsForDate({ year: 2082, month: 6, day: 13 })
       const fulpati = events.find(e => e.id === 'dashain-day7')
       expect(fulpati).toBeDefined()
     })
 
     it('returns Maha Asthami on Dashain day 8', () => {
-      // Asthami (tithi 8) in 2082 Ashwin is on day 13 — verified from generated data
-      const events = getEventsForDate({ year: 2082, month: 7, day: 13 })
+      // Asthami (tithi 8) in 2082 Ashwin is on day 14
+      const events = getEventsForDate({ year: 2082, month: 6, day: 14 })
       const asthami = events.find(e => e.id === 'dashain-day8')
       expect(asthami).toBeDefined()
       expect(asthami!.name.en).toContain('Maha Asthami')
     })
 
     it('returns Maha Nawami on Dashain day 9', () => {
-      // Nawami (tithi 9) in 2082 Ashwin is on day 14 — verified from generated data
-      const events = getEventsForDate({ year: 2082, month: 7, day: 14 })
+      // Nawami (tithi 9) in 2082 Ashwin is on day 15
+      const events = getEventsForDate({ year: 2082, month: 6, day: 15 })
       const nawami = events.find(e => e.id === 'dashain-day9')
       expect(nawami).toBeDefined()
     })
@@ -135,7 +135,7 @@ describe('Phase 4: Event Engine', () => {
 
   describe('getEventsForMonth', () => {
     it('returns all events for a month', () => {
-      const events = getEventsForMonth(2082, 7) // Ashwin - Dashain month
+      const events = getEventsForMonth(2082, 6) // Ashwin - Dashain month
       expect(events.length).toBeGreaterThan(5) // Should have many Dashain-related events
 
       const eventIds = events.map(e => e.id)
@@ -202,7 +202,7 @@ describe('Phase 4: Event Engine', () => {
 
   describe('getAuspiciousDates', () => {
     it('returns auspicious days for a month', () => {
-      const auspiciousDays = getAuspiciousDates(2082, 7) // Ashwin - Dashain month
+      const auspiciousDays = getAuspiciousDates(2082, 6) // Ashwin - Dashain month
       expect(auspiciousDays.length).toBeGreaterThan(0)
 
       // Should include Vijaya Dashami
@@ -214,7 +214,7 @@ describe('Phase 4: Event Engine', () => {
     })
 
     it('filters by category', () => {
-      const religiousDays = getAuspiciousDates(2082, 7, 'religious')
+      const religiousDays = getAuspiciousDates(2082, 6, 'religious')
       expect(Array.isArray(religiousDays)).toBe(true)
 
       // All returned days should have religious events
@@ -235,8 +235,8 @@ describe('Phase 4: Event Engine', () => {
 
   describe('isAuspicious', () => {
     it('returns auspicious for Vijaya Dashami', () => {
-      // Vijaya Dashami is on Ashwin 15 in 2082 — verified from generated data
-      const classification = isAuspicious({ year: 2082, month: 7, day: 15 })
+      // Vijaya Dashami is on Ashwin 16 in 2082
+      const classification = isAuspicious({ year: 2082, month: 6, day: 16 })
       expect(classification).toBe('auspicious')
     })
 
@@ -263,7 +263,7 @@ describe('Phase 4: Event Engine', () => {
 
   describe('Event Categories', () => {
     it('categorizes Dashain as religious', () => {
-      const events = getEventsForDate({ year: 2082, month: 7, day: 10 })
+      const events = getEventsForDate({ year: 2082, month: 6, day: 14 })
       const dashainEvents = events.filter(e => e.id.includes('dashain'))
       dashainEvents.forEach(event => {
         expect(event.category).toBe('religious')
@@ -277,7 +277,7 @@ describe('Phase 4: Event Engine', () => {
     })
 
     it('categorizes Tihar as cultural', () => {
-      const events = getEventsForDate({ year: 2082, month: 8, day: 2 })
+      const events = getEventsForDate({ year: 2082, month: 7, day: 2 })
       const tiharEvents = events.filter(e => e.id.includes('tihar'))
       // Some Tihar days are cultural, some are religious
       expect(tiharEvents.length).toBeGreaterThan(0)
@@ -292,8 +292,8 @@ describe('Phase 4: Event Engine', () => {
     })
 
     it('marks Vijaya Dashami as public holiday', () => {
-      // Vijaya Dashami is on Ashwin 15 in 2082 — verified from generated data
-      const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
+      // Vijaya Dashami is on Ashwin 16 in 2082
+      const events = getEventsForDate({ year: 2082, month: 6, day: 16 })
       const vijayaDashami = events.find(e => e.id === 'vijaya-dashami')
       expect(vijayaDashami).toBeDefined()
       if (vijayaDashami) {
@@ -303,7 +303,7 @@ describe('Phase 4: Event Engine', () => {
 
     it('marks Laxmi Puja as public holiday', () => {
       // Laxmi Puja is on Kartik 4 in 2082
-      const events = getEventsForDate({ year: 2082, month: 8, day: 4 })
+      const events = getEventsForDate({ year: 2082, month: 7, day: 4 })
       const laxmiPuja = events.find(e => e.id === 'tihar-day3-laxmi')
       expect(laxmiPuja).toBeDefined()
       if (laxmiPuja) {

@@ -153,6 +153,11 @@ function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
           isMatch = true
         }
       }
+    } else if (festival.method === 'fixed_ad_date' && festival.adMonth && festival.adDay) {
+      const adDate = bsToAd(bsDate)
+      if (adDate.getUTCMonth() + 1 === festival.adMonth && adDate.getUTCDate() === festival.adDay) {
+        isMatch = true
+      }
     }
 
     if (isMatch) {
@@ -218,6 +223,13 @@ export function getEventsForDate(date: Date | BSDate): CalendarEvent[] {
   const uniqueEvents = events.filter((event, index, self) =>
     index === self.findIndex(e => e.id === event.id)
   )
+
+  // Sort: public holidays first, then by type priority
+  uniqueEvents.sort((a, b) => {
+    if (a.isPublicHoliday !== b.isPublicHoliday) return a.isPublicHoliday ? -1 : 1
+    const typePriority: Record<string, number> = { public_holiday: 1, festival: 2, auspicious_date: 3, inauspicious_period: 4, custom: 5 }
+    return (typePriority[a.type] ?? 9) - (typePriority[b.type] ?? 9)
+  })
 
   return uniqueEvents
 }

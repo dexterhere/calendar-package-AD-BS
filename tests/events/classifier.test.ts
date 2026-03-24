@@ -9,8 +9,8 @@ describe('Phase 4: Classifier', () => {
 
   describe('isAuspicious - Basic Classification', () => {
     it('returns auspicious for major festivals', () => {
-      // Vijaya Dashami - biggest festival (Ashwin 14 in 2082)
-      const result = isAuspicious({ year: 2082, month: 7, day: 14 })
+      // Vijaya Dashami - biggest festival (Ashwin 16 in 2082)
+      const result = isAuspicious({ year: 2082, month: 6, day: 16 })
       expect(result).toBe('auspicious')
     })
 
@@ -42,13 +42,13 @@ describe('Phase 4: Classifier', () => {
   describe('isAuspicious - Tihar Period', () => {
     it('classifies Laxmi Puja as auspicious', () => {
       // Kartik Amavasya (Kartik 4 in 2082)
-      const result = isAuspicious({ year: 2082, month: 8, day: 4 })
+      const result = isAuspicious({ year: 2082, month: 7, day: 4 })
       expect(result).toBe('auspicious')
     })
 
     it('classifies Bhai Tika as auspicious', () => {
       // Kartik Shukla Dwitiya (Kartik 6 in 2082)
-      const result = isAuspicious({ year: 2082, month: 8, day: 6 })
+      const result = isAuspicious({ year: 2082, month: 7, day: 6 })
       expect(result).toBe('auspicious')
     })
   })
@@ -76,7 +76,7 @@ describe('Phase 4: Classifier', () => {
   describe('classifyDateForPurpose - Bratabandha', () => {
     it('classifies religious festivals as auspicious for bratabandha', () => {
       const result = classifyDateForPurpose(
-        { year: 2082, month: 7, day: 14 }, // Vijaya Dashami
+        { year: 2082, month: 6, day: 16 }, // Vijaya Dashami
         'bratabandha'
       )
       expect(result).toBe('auspicious')
@@ -96,7 +96,7 @@ describe('Phase 4: Classifier', () => {
   describe('classifyDateForPurpose - General', () => {
     it('uses base classification for general purpose', () => {
       const result = classifyDateForPurpose(
-        { year: 2082, month: 7, day: 14 }, // Vijaya Dashami
+        { year: 2082, month: 6, day: 16 }, // Vijaya Dashami
         'general'
       )
       expect(result).toBe('auspicious')
