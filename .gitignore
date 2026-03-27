@@ -4,7 +4,8 @@ coverage/
 *.tsbuildinfo
 .env
 plan/
-docs/
+docs/.vitepress/dist/
+docs/api/reference/
 
 # Claude Code IDE settings (local only)
 .claude/

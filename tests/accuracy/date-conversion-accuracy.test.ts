@@ -1,8 +1,6 @@
 /**
  * BS ↔ AD Date Conversion Accuracy Tests
  * Validates against verified reference data from Hamro Patro & Drik Panchang
- *
- * Developed and Led by: Prince Bhagat — Call sign "Buggy Buck" 🦌
  */
 import { describe, it, expect } from 'vitest'
 import { toAD, toBS } from '../../src/converter/index.js'

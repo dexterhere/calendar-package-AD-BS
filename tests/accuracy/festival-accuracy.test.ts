@@ -1,8 +1,6 @@
 /**
  * Festival Date Accuracy Tests
  * Validates festival resolution against verified Hamro Patro / Drik Panchang data
- *
- * Developed and Led by: Prince Bhagat — Call sign "Buggy Buck" 🦌
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { getEventsForDate, getEventsForMonth } from '../../src/events/event-engine.js'

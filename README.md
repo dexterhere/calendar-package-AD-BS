@@ -1,6 +1,6 @@
 # Nepali Calendar Engine
 
-`@meroevent/nepali-calendar-engine` is a TypeScript package for Bikram Sambat (BS) calendar operations, including BS/AD conversion, calendar grid generation, panchang lookup, and festival/holiday classification.
+`nepali-calendar-engine` is a TypeScript package for Bikram Sambat (BS) calendar operations, including BS/AD conversion, calendar grid generation, panchang lookup, and festival/holiday classification.
 
 ## Quick Glance
 
@@ -16,13 +16,13 @@
 ## Installation
 
 ```bash
-pnpm add @meroevent/nepali-calendar-engine
+pnpm add nepali-calendar-engine
 ```
 
 ## Quick Start
 
 ```ts
-import { toBS, toAD, getMonthCalendar, getPanchang, getEventsForDate } from '@meroevent/nepali-calendar-engine'
+import { toBS, toAD, getMonthCalendar, getPanchang, getEventsForDate } from 'nepali-calendar-engine'
 
 const bsDate = toBS(new Date(2025, 3, 14))
 const adDate = toAD({ year: 2082, month: 1, day: 1 })
@@ -40,7 +40,7 @@ Panchang data is computed from planetary positions at sunrise (astronomy-engine,
 ### Basic lookup
 
 ```ts
-import { getPanchang, ensurePanchangYear } from '@meroevent/nepali-calendar-engine'
+import { getPanchang, ensurePanchangYear } from 'nepali-calendar-engine'
 
 // Pre-load data for a year (async, call once before bulk queries)
 await ensurePanchangYear(2082)
@@ -145,3 +145,17 @@ All detailed docs are under [`docs/`](./docs/):
 - [`docs/TESTING-GUIDE.md`](./docs/TESTING-GUIDE.md) - testing guide
 - [`docs/CREDITS.md`](./docs/CREDITS.md) - credits and sources
 - [`docs/project.md`](./docs/project.md) - original project plan/reference
+
+For local docs site development and build:
+
+```bash
+pnpm run docs:dev
+pnpm run docs:build
+pnpm run docs:preview
+```
+
+API reference pages are generated from TypeScript exports via TypeDoc:
+
+```bash
+pnpm run docs:api
+```

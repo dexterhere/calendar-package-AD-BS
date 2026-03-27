@@ -43,3 +43,6 @@ jobs:
 
       - name: Lightweight validation (offline)
         run: pnpm run validate:panchang
+
+      - name: Build docs
+        run: pnpm run docs:build

@@ -1,14 +1,12 @@
 {
-  "name": "@meroevent/nepali-calendar-engine",
+  "name": "nepali-calendar-engine",
   "version": "0.1.0",
   "description": "Bikram Sambat calendar engine — conversion, grid generation, panchang, and festival data for Nepal",
-  "author": "Prince Bhagat <dexter@meroevent.com>",
+  "author": "Nepali Calendar Engine Contributors",
   "contributors": [
     {
-      "name": "Prince Bhagat",
-      "email": "dexter@meroevent.com",
-      "callsign": "Buggy Buck",
-      "role": "Lead Developer & Architect"
+      "name": "Core Maintainers",
+      "role": "Package Maintainers"
     }
   ],
   "license": "MIT",
@@ -30,6 +28,10 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "docs:api": "typedoc --options typedoc.json",
+    "docs:dev": "pnpm run docs:api && vitepress dev docs",
+    "docs:build": "pnpm run docs:api && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -59,7 +61,10 @@
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.21.0",
+    "typedoc": "^0.28.18",
+    "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^5.7.0",
+    "vitepress": "^1.6.4",
     "vitest": "^3.0.0"
   },
   "engines": {

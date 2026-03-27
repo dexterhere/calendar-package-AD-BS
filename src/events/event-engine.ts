@@ -24,7 +24,7 @@ const PUBLIC_HOLIDAY_FIXED_DATES_2082 = new Map<string, { month: number; day: nu
 
 /**
  * Merges custom events into the base dataset for the current runtime session.
- * Called once at app startup (e.g., with events from the MeroEvent admin panel).
+ * Called once at app startup (e.g., with events from an external admin panel).
  */
 export function registerEvents(events: CalendarEvent[]): void {
   injectedEvents = [
