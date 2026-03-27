@@ -13,6 +13,7 @@ TypeScript package for Bikram Sambat (BS) calendar conversion, panchang lookup, 
 ## Start here
 
 - [Getting Started](./guide/getting-started)
+- [Interactive Playground](./guide/playground)
 - [Panchang and Events](./guide/panchang-and-events)
 - [Validation and Trust](./guide/validation-and-trust)
 - [API Reference](./api/reference/README)

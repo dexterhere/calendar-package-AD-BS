@@ -19,6 +19,9 @@ This folder contains all project documentation for `nepali-calendar-engine`.
 - [`index.md`](./index.md)  
   VitePress docs homepage for guides and API reference.
 
+- [`guide/playground.md`](./guide/playground.md)  
+  Entry page for the interactive web playground.
+
 ## Docs site commands
 
 ```bash
@@ -27,4 +30,6 @@ pnpm run docs:dev
 pnpm run docs:build
 pnpm run docs:preview
 ```
+
+The live interactive explorer is served from `docs/public/playground/index.html` and available at `/playground/` in the docs site.
 

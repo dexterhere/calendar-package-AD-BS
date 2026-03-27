@@ -159,3 +159,5 @@ API reference pages are generated from TypeScript exports via TypeDoc:
 ```bash
 pnpm run docs:api
 ```
+
+An interactive browser playground is available in the docs site at `/playground/` (source: `docs/public/playground/index.html`).
