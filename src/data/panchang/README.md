@@ -1,21 +1,62 @@
 # Panchang Data
 
-Pre-computed tithi/paksha/nakshatra data per BS year.
+Precomputed per-day panchang data for Kathmandu. The runtime lookup uses compact day entries and derives localized names at read time.
 
-**Coverage target:** BS 2082–2087 (approximately AD 2025–2030)
+## Coverage
 
-**Schema per day entry:**
+- Supported BS year range in this repository: `2080–2090`
+- Runtime fallback computation supports older in-range BS years via astronomy-engine
+
+## Entry schema (compact)
+
+Each `<year>.json` contains an array of entries:
+
 ```json
 {
-  "bsDate": { "year": 2082, "month": 1, "day": 1 },
-  "tithi": { "name": "Pratipada", "nameNe": "प्रतिपदा", "number": 1 },
-  "paksha": "shukla",
-  "nakshatra": { "name": "Ashwini", "nameNe": "अश्विनी" }
+  "m": 1,
+  "d": 1,
+  "t": 16,
+  "n": 17,
+  "y": 18,
+  "k": 3,
+  "tt": "k"
 }
 ```
 
-**Sources:**
-1. Primary: Nepal Rashtriya Panchang (government-published)
-2. Validation: Drik Panchang (drikpanchang.com)
+Field meanings:
 
-**Maintenance:** Add a new `<year>.json` file before each BS new year (mid-April AD).
+- `m`: BS month (1–12)
+- `d`: BS day (1–32)
+- `t`: tithi number (1–30)
+- `n`: nakshatra number (1–27)
+- `y`: yoga number (1–27)
+- `k`: karana number (1–11)
+- `tt`: optional tithi edge marker (`k` = kshaya, `v` = vriddhi)
+
+## Source and generation
+
+- Primary engine: `scripts/generate-panchang-v2.ts` (astronomy-engine)
+- Reference checks: `scripts/validate-panchang.ts`
+- Multi-engine cross-validation: `scripts/validation/cross-validate.ts`
+- Integrity manifest: `src/data/panchang/integrity-manifest.json` (canonical SHA-256 + day counts)
+
+## Monthly maintenance
+
+Use:
+
+```bash
+pnpm maintenance:monthly
+```
+
+This runs generation + validation and writes summary artifacts under `reports/`.
+
+## Integrity and reproducibility notes
+
+- `pnpm trust:check` verifies all year files against `integrity-manifest.json` without network access.
+- Canonicalization is deterministic (stable key ordering before hashing), so non-semantic formatting changes in JSON do not cause false negatives.
+- After intentional panchang data updates, refresh trust metadata with:
+
+```bash
+pnpm trust:refresh-manifest
+pnpm trust:check
+```

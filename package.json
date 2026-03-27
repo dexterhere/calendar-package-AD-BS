@@ -13,6 +13,7 @@
   ],
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@10.18.3",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -35,13 +36,19 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build && pnpm run test",
-    "generate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-panchang.ts",
+    "generate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-panchang-v2.ts",
     "validate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/validate-panchang.ts",
+    "validate:cross": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/validation/cross-validate.ts",
     "collect:holidays": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/collect-holidays.ts",
     "accuracy:compare": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/accuracy-comparison.ts",
-    "accuracy:report": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-accuracy-report.ts"
+    "accuracy:report": "pnpm run accuracy:compare",
+    "maintenance:monthly": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/monthly-maintenance.ts",
+    "deps:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --lockfile-only",
+    "trust:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts",
+    "trust:refresh-manifest": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --write-manifest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@ishubhamx/panchangam-js": "^2.2.6",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",

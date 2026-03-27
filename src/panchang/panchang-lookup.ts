@@ -1,6 +1,7 @@
 import type { BSDate } from '../converter/types.js'
 import type { PanchangInfo } from './types.js'
 import { adToBs } from '../converter/ad-to-bs.js'
+import { BS_YEAR_MAX, BS_YEAR_MIN, validateBSDate } from '../converter/utils.js'
 import { PAKSHA_NAMES } from '../i18n/paksha-names.js'
 import { getTithiByNumber } from '../i18n/tithi-names.js'
 import { getNakshatraByNumber } from '../i18n/nakshatra-names.js'
@@ -31,21 +32,19 @@ async function loadYear(year: number): Promise<boolean> {
   if (_cache.has(year)) return true
   if (!PANCHANG_YEARS.has(year)) return false
 
-  try {
-    // Use embedded data instead of dynamic imports
-    const entries = PANCHANG_DATA[year]
-    if (!entries) return false
-
-    const index = new Map<number, PanchangEntry>()
-    for (const entry of entries) {
-      index.set(entry.m * 100 + entry.d, entry)
-    }
-    _cache.set(year, index)
-    return true
-  } catch (error) {
-    console.error('Failed to load panchang for year', year, error)
-    return false
+  // Use embedded data instead of dynamic imports
+  const entries = PANCHANG_DATA[year]
+  if (entries === undefined) {
+    throw new Error(`Panchang data is missing for BS year ${year}.`)
   }
+
+  const index = new Map<number, PanchangEntry>()
+  for (const entry of entries) {
+    assertPanchangEntry(entry, year)
+    index.set(entry.m * 100 + entry.d, entry)
+  }
+  _cache.set(year, index)
+  return true
 }
 
 /**
@@ -89,7 +88,8 @@ export async function ensurePanchangYear(bsYear: number): Promise<void> {
  * (BS 2000–2090) or if computation fails.
  */
 export function getPanchang(date: Date | BSDate, options?: FallbackOptions): PanchangInfo | null {
-  const bsDate: BSDate = date instanceof Date ? adToBs(date) : date
+  const bsDate = toSupportedBSDate(date)
+  if (bsDate === null) return null
 
   const lat = options?.lat ?? KTM_LAT
   const lon = options?.lon ?? KTM_LON
@@ -100,12 +100,8 @@ export function getPanchang(date: Date | BSDate, options?: FallbackOptions): Pan
     return lookupSync(bsDate)
   }
 
-  // Fallback: live computation for out-of-range years or custom locations
-  try {
-    return computeFallback(bsDate, options)
-  } catch {
-    return null
-  }
+  // Fallback: live computation for out-of-precomputed-range years or custom locations
+  return computeFallback(bsDate, options)
 }
 
 /**
@@ -155,6 +151,32 @@ function entryToPanchangInfo(entry: PanchangEntry): PanchangInfo {
   }
 
   return info
+}
+
+function assertPanchangEntry(entry: PanchangEntry, year: number): void {
+  if (entry.tt !== undefined && entry.tt !== 'k' && entry.tt !== 'v') {
+    throw new TypeError(
+      `Invalid tithiType marker '${String(entry.tt)}' in embedded panchang data for BS year ${year}.`
+    )
+  }
+}
+
+function toSupportedBSDate(date: Date | BSDate): BSDate | null {
+  if (date instanceof Date) {
+    try {
+      return adToBs(date)
+    } catch (error) {
+      if (error instanceof RangeError) return null
+      throw error
+    }
+  }
+
+  if (date.year < BS_YEAR_MIN || date.year > BS_YEAR_MAX) {
+    return null
+  }
+
+  validateBSDate(date)
+  return date
 }
 
 // Re-export the lookup function used internally by the calendar grid

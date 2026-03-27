@@ -16,6 +16,8 @@ describe('Phase 4: Event Engine', () => {
       expect(magheSankranti).toBeDefined()
       expect(magheSankranti!.name.en).toBe('Maghe Sankranti')
       expect(magheSankranti!.isPublicHoliday).toBe(true)
+      expect(magheSankranti!.provenance?.origin).toBe('base_festival')
+      expect(magheSankranti!.provenance?.sourceKind).toBe('rule_based')
     })
 
     it('returns Republic Day for Jestha 15', () => {
@@ -309,6 +311,15 @@ describe('Phase 4: Event Engine', () => {
       if (laxmiPuja) {
         expect(laxmiPuja.isPublicHoliday).toBe(true)
       }
+    })
+
+    it('attaches government provenance to annual holiday records', () => {
+      const events = getEventsForDate({ year: 2082, month: 1, day: 1 })
+      const annualNewYear = events.find(e => e.id === '2082-new-year')
+      expect(annualNewYear).toBeDefined()
+      expect(annualNewYear!.provenance?.origin).toBe('government_holiday')
+      expect(annualNewYear!.provenance?.sourceKind).toBe('government_declared')
+      expect(annualNewYear!.provenance?.reference).toContain('PUBLIC_HOLIDAYS_2082:2082-new-year')
     })
   })
 })

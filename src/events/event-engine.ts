@@ -4,112 +4,33 @@ import { adToBs } from '../converter/ad-to-bs.js'
 import { bsToAd } from '../converter/bs-to-ad.js'
 import { getMonthDayCount } from '../data/bs-month-lengths.js'
 import { getPanchang } from '../panchang/panchang-lookup.js'
-import { BASE_FESTIVALS, type FestivalDefinition } from '../data/festivals.js'
+import { BASE_FESTIVALS } from '../data/festivals.js'
 import { PUBLIC_HOLIDAYS_2082 } from '../data/public-holidays/2082.js'
 
 // Runtime-injected events (added via registerEvents())
 let injectedEvents: CalendarEvent[] = []
+
+const FESTIVAL_IDS_BY_NAME = new Map<string, string[]>()
+for (const festival of BASE_FESTIVALS) {
+  const normalized = normalizeEventName(festival.name.en)
+  const ids = FESTIVAL_IDS_BY_NAME.get(normalized) ?? []
+  ids.push(festival.id)
+  FESTIVAL_IDS_BY_NAME.set(normalized, ids)
+}
+
+const PUBLIC_HOLIDAY_FIXED_DATES_2082 = new Map<string, { month: number; day: number; duration?: number }>([
+  ['2082-new-year', { month: 1, day: 1 }],
+])
 
 /**
  * Merges custom events into the base dataset for the current runtime session.
  * Called once at app startup (e.g., with events from the MeroEvent admin panel).
  */
 export function registerEvents(events: CalendarEvent[]): void {
-  injectedEvents = [...injectedEvents, ...events]
-}
-
-/**
- * Resolve tithi-based festivals for a given year
- * Searches through the specified month to find the matching tithi
- */
-function resolveTithiBasedFestival(
-  festival: FestivalDefinition,
-  bsYear: number
-): BSDate[] {
-  const dates: BSDate[] = []
-
-  if (!festival.tithi || !festival.paksha || !festival.searchMonth) {
-    return dates
-  }
-
-  const searchMonths = festival.searchMonth === 1
-    ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] // All months for Ekadashi
-    : [festival.searchMonth]
-
-  for (const month of searchMonths) {
-    // Get number of days in the month
-    let daysInMonth = 30
-    try {
-      daysInMonth = getMonthDayCount(bsYear, month)
-    } catch {
-      // Fallback if not available
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const bsDate: BSDate = { year: bsYear, month, day }
-      const panchang = getPanchang(bsDate)
-
-      if (!panchang) continue
-
-      // Check if tithi and paksha match
-      const tithiMatches = panchang.tithi.number === festival.tithi
-      const pakshaMatches = panchang.paksha === festival.paksha
-
-      if (tithiMatches && pakshaMatches) {
-        dates.push(bsDate)
-        // Only add first match unless it's a multi-day festival
-        if (!festival.tithiDuration || festival.tithiDuration === 1) {
-          break
-        }
-      }
-
-      // Handle multi-day festivals
-      if (festival.tithiDuration && festival.tithiDuration > 1 && tithiMatches && pakshaMatches) {
-        for (let offset = 1; offset < festival.tithiDuration; offset++) {
-          const nextDay = day + offset
-          if (nextDay <= daysInMonth) {
-            dates.push({ year: bsYear, month, day: nextDay })
-          }
-        }
-        break
-      }
-    }
-  }
-
-  return dates
-}
-
-/**
- * Get fixed BS date festivals for a given year
- */
-function resolveFixedDateFestival(
-  festival: FestivalDefinition,
-  bsYear: number
-): BSDate[] {
-  const dates: BSDate[] = []
-
-  if (!festival.month || !festival.day) {
-    return dates
-  }
-
-  const duration = festival.duration || 1
-
-  // Get actual days in month
-  let daysInMonth = 30
-  try {
-    daysInMonth = getMonthDayCount(bsYear, festival.month)
-  } catch {
-    // Fallback
-  }
-
-  for (let i = 0; i < duration; i++) {
-    const day = festival.day + i
-    if (day <= daysInMonth) {
-      dates.push({ year: bsYear, month: festival.month!, day })
-    }
-  }
-
-  return dates
+  injectedEvents = [
+    ...injectedEvents,
+    ...events.map(event => withRuntimeProvenance(event)),
+  ]
 }
 
 /**
@@ -117,25 +38,29 @@ function resolveFixedDateFestival(
  */
 function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
   const events: CalendarEvent[] = []
-  const { year, month, day } = bsDate
+  const { month, day } = bsDate
   const panchang = getPanchang(bsDate)
 
   for (const festival of BASE_FESTIVALS) {
     let isMatch = false
 
     if (festival.method === 'fixed_bs_date') {
-      const duration = festival.duration || 1
+      const duration = festival.duration ?? 1
+      const festMonth = festival.month
+      const festDay = festival.day
       if (
-        festival.month === month &&
-        day >= festival.day! &&
-        day < festival.day! + duration
+        festMonth !== undefined &&
+        festDay !== undefined &&
+        festMonth === month &&
+        day >= festDay &&
+        day < festDay + duration
       ) {
         isMatch = true
       }
-    } else if (festival.method === 'tithi_based' && panchang) {
+    } else if (festival.method === 'tithi_based' && panchang !== null) {
       const tithiMatches = festival.tithi === panchang.tithi.number
       const pakshaMatches = festival.paksha === panchang.paksha
-      const monthMatches = !festival.searchMonth ||
+      const monthMatches = festival.searchMonth === undefined ||
         festival.searchMonth === 1 || // All months (like Ekadashi)
         festival.searchMonth === month
 
@@ -153,7 +78,7 @@ function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
           isMatch = true
         }
       }
-    } else if (festival.method === 'fixed_ad_date' && festival.adMonth && festival.adDay) {
+    } else if (festival.method === 'fixed_ad_date' && festival.adMonth !== undefined && festival.adDay !== undefined) {
       const adDate = bsToAd(bsDate)
       if (adDate.getUTCMonth() + 1 === festival.adMonth && adDate.getUTCDate() === festival.adDay) {
         isMatch = true
@@ -167,9 +92,14 @@ function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
         type: festival.type,
         category: festival.category,
         isPublicHoliday: festival.isPublicHoliday,
+        provenance: {
+          origin: 'base_festival',
+          sourceKind: 'rule_based',
+          reference: `BASE_FESTIVALS:${festival.id}`,
+        },
       }
 
-      if (festival.description) {
+      if (festival.description !== undefined) {
         event.description = festival.description
       }
 
@@ -180,15 +110,34 @@ function getResolvedFestivalsForDate(bsDate: BSDate): CalendarEvent[] {
   return events
 }
 
-/**
- * Get public holidays for a specific BS year
- */
-function getPublicHolidaysForYear(bsYear: number): CalendarEvent[] {
-  // Currently only 2082 is defined
-  if (bsYear === 2082) {
-    return [...PUBLIC_HOLIDAYS_2082]
+function getPublicHolidaysForDate(bsDate: BSDate, festivalEvents: readonly CalendarEvent[]): CalendarEvent[] {
+  if (bsDate.year !== 2082) return []
+
+  const festivalIds = new Set(festivalEvents.map(event => event.id))
+  const holidaysForDate: CalendarEvent[] = []
+
+  for (const holiday of PUBLIC_HOLIDAYS_2082) {
+    const mirroredFestivalId = resolveMirroredFestivalId(holiday.name.en)
+
+    if (mirroredFestivalId !== undefined) {
+      if (!festivalIds.has(mirroredFestivalId)) continue
+      holidaysForDate.push(withGovernmentProvenance(holiday, bsDate.year))
+      continue
+    }
+
+    const fixedDate = PUBLIC_HOLIDAY_FIXED_DATES_2082.get(holiday.id)
+    if (fixedDate === undefined) continue
+
+    const duration = fixedDate.duration ?? 1
+    const inDateRange = bsDate.month === fixedDate.month &&
+      bsDate.day >= fixedDate.day &&
+      bsDate.day < fixedDate.day + duration
+    if (!inDateRange) continue
+
+    holidaysForDate.push(withGovernmentProvenance(holiday, bsDate.year))
   }
-  return []
+
+  return holidaysForDate
 }
 
 /**
@@ -201,28 +150,59 @@ function getPublicHolidaysForYear(bsYear: number): CalendarEvent[] {
  */
 export function getEventsForDate(date: Date | BSDate): CalendarEvent[] {
   const bsDate: BSDate = date instanceof Date ? adToBs(date) : date
-  const events: CalendarEvent[] = []
-
-  // Get resolved festivals for this date
   const festivalEvents = getResolvedFestivalsForDate(bsDate)
-  events.push(...festivalEvents)
-
-  // Get public holidays for this year
-  const yearHolidays = getPublicHolidaysForYear(bsDate.year)
-  events.push(...yearHolidays)
+  const yearHolidays = getPublicHolidaysForDate(bsDate, festivalEvents)
 
   // Add injected custom events (from runtime registration)
-  const customEvents = injectedEvents.filter(event => {
+  const customEvents = injectedEvents.filter(_event => {
     // Custom events can have date information embedded in their ID or metadata
     // For now, they're returned for all dates (can be enhanced with date filtering)
     return false // Custom events need date metadata to filter properly
   })
-  events.push(...customEvents)
+  const mergedById = new Map<string, CalendarEvent>()
+  for (const event of festivalEvents) {
+    mergedById.set(event.id, event)
+  }
 
-  // Remove duplicates by ID
-  const uniqueEvents = events.filter((event, index, self) =>
-    index === self.findIndex(e => e.id === event.id)
-  )
+  for (const holiday of yearHolidays) {
+    const mirroredFestivalId = extractMirroredFestivalId(holiday.provenance?.reference)
+    if (mirroredFestivalId !== undefined) {
+      const mirroredFestival = mergedById.get(mirroredFestivalId)
+      if (mirroredFestival !== undefined) {
+        const holidayReference = holiday.provenance?.reference
+        const festivalProvenance = mirroredFestival.provenance
+        const festivalReference = festivalProvenance?.reference
+        if (
+          holidayReference !== undefined &&
+          festivalProvenance !== undefined &&
+          festivalReference !== undefined &&
+          !festivalReference.includes(holidayReference)
+        ) {
+          mirroredFestival.provenance = {
+            ...festivalProvenance,
+            reference: `${festivalReference}; ${holidayReference}`,
+          }
+        }
+
+        if (holiday.isPublicHoliday && !mirroredFestival.isPublicHoliday) {
+          mirroredFestival.isPublicHoliday = true
+        }
+        continue
+      }
+    }
+
+    if (!mergedById.has(holiday.id)) {
+      mergedById.set(holiday.id, holiday)
+    }
+  }
+
+  for (const customEvent of customEvents) {
+    if (!mergedById.has(customEvent.id)) {
+      mergedById.set(customEvent.id, customEvent)
+    }
+  }
+
+  const uniqueEvents = [...mergedById.values()]
 
   // Sort: public holidays first, then by type priority
   uniqueEvents.sort((a, b) => {
@@ -234,6 +214,50 @@ export function getEventsForDate(date: Date | BSDate): CalendarEvent[] {
   return uniqueEvents
 }
 
+function withGovernmentProvenance(event: CalendarEvent, bsYear: number): CalendarEvent {
+  const matchedFestivalId = resolveMirroredFestivalId(event.name.en)
+
+  const baseReference = `PUBLIC_HOLIDAYS_${bsYear}:${event.id}`
+  const reference = matchedFestivalId === undefined
+    ? baseReference
+    : `${baseReference}; mirrors BASE_FESTIVALS:${matchedFestivalId}`
+
+  return {
+    ...event,
+    provenance: {
+      origin: 'government_holiday',
+      sourceKind: 'government_declared',
+      reference,
+    },
+  }
+}
+
+function withRuntimeProvenance(event: CalendarEvent): CalendarEvent {
+  return {
+    ...event,
+    provenance: {
+      origin: 'runtime_injected',
+      sourceKind: 'runtime_injected',
+      reference: `registerEvents:${event.id}`,
+    },
+  }
+}
+
+function normalizeEventName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+}
+
+function resolveMirroredFestivalId(eventNameEn: string): string | undefined {
+  const matchedFestivalIds = FESTIVAL_IDS_BY_NAME.get(normalizeEventName(eventNameEn))
+  return matchedFestivalIds?.[0]
+}
+
+function extractMirroredFestivalId(reference: string | undefined): string | undefined {
+  if (reference === undefined) return undefined
+  const match = /mirrors BASE_FESTIVALS:([a-z0-9-]+)/.exec(reference)
+  return match?.[1]
+}
+
 /**
  * Returns all events for a given BS month.
  * Aggregates getEventsForDate across all days in the month.
@@ -242,13 +266,7 @@ export function getEventsForMonth(bsYear: number, bsMonth: number): CalendarEven
   const allEvents: CalendarEvent[] = []
   const seenIds = new Set<string>()
 
-  // Get number of days in the month
-  let daysInMonth = 30
-  try {
-    daysInMonth = getMonthDayCount(bsYear, bsMonth)
-  } catch {
-    // Fallback
-  }
+  const daysInMonth = getMonthDayCount(bsYear, bsMonth)
 
   for (let day = 1; day <= daysInMonth; day++) {
     const bsDate: BSDate = { year: bsYear, month: bsMonth, day }
@@ -275,13 +293,7 @@ export function getAuspiciousDates(
 ): AuspiciousDay[] {
   const auspiciousDays: AuspiciousDay[] = []
 
-  // Get number of days in the month
-  let daysInMonth = 30
-  try {
-    daysInMonth = getMonthDayCount(bsYear, bsMonth)
-  } catch {
-    // Fallback
-  }
+  const daysInMonth = getMonthDayCount(bsYear, bsMonth)
 
   for (let day = 1; day <= daysInMonth; day++) {
     const bsDate: BSDate = { year: bsYear, month: bsMonth, day }
@@ -289,7 +301,7 @@ export function getAuspiciousDates(
     const events = getEventsForDate(bsDate)
 
     // Filter by category if specified
-    const filteredEvents = category
+    const filteredEvents = category !== undefined
       ? events.filter(e => e.category === category)
       : events
 
@@ -303,12 +315,15 @@ export function getAuspiciousDates(
     }
 
     // Only include days with events or specific classifications
-    if (filteredEvents.length > 0 || classification !== 'neutral') {
+    const eventsForDay = category !== undefined ? filteredEvents : events
+    const hasCategoryMatch = category === undefined || filteredEvents.length > 0
+
+    if (hasCategoryMatch && (eventsForDay.length > 0 || classification !== 'neutral')) {
       auspiciousDays.push({
         bs: bsDate,
         ad: adDate,
         classification,
-        events: filteredEvents,
+        events: eventsForDay,
       })
     }
   }

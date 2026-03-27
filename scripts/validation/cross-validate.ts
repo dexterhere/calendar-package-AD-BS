@@ -33,7 +33,6 @@
  *     scripts/validation/cross-validate.ts --year 2082 --output ./my-reports/
  */
 
-import fs   from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -43,6 +42,11 @@ import { getMonthDayCount, BS_DATA_YEAR_MIN, BS_DATA_YEAR_MAX }
 import { computePanchang }                     from '../../src/astro/compute.js'
 import { getHorizonsPositions }                from './horizons-fetch.js'
 import { getAstronomiaPositions_forDate }      from './astronomia-compute.js'
+import {
+  buildUnifiedReport,
+  writeJsonArtifact,
+  type ValidationCheckResult,
+} from './report-contract.js'
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 const ROOT        = path.resolve(fileURLToPath(import.meta.url), '../../..')
@@ -151,6 +155,12 @@ function progressLine(
   )
 }
 
+function mapStatusToCheck(status: ValidationStatus): 'pass' | 'warn' | 'fail' {
+  if (status === 'GREEN') return 'pass'
+  if (status === 'YELLOW') return 'warn'
+  return 'fail'
+}
+
 // ── Main validation function ──────────────────────────────────────────────────
 
 export async function crossValidateYear(
@@ -242,11 +252,54 @@ export async function crossValidateYear(
 
 // ── Report writer ─────────────────────────────────────────────────────────────
 
-function writeReport(report: ValidationReport, outputDir: string): string {
-  fs.mkdirSync(outputDir, { recursive: true })
+function writeReport(report: ValidationReport, outputDir: string, command: string): string {
   const filename  = `validation-report-${report.year}.json`
   const filepath  = path.join(outputDir, filename)
-  fs.writeFileSync(filepath, JSON.stringify(report, null, 2), 'utf8')
+  const relativeArtifactPath = path.relative(ROOT, filepath)
+
+  const checks: ValidationCheckResult[] = report.entries.map(entry => ({
+    id: `${entry.bsDate}-cross-validation`,
+    category: 'cross-validation',
+    label: `Cross-validation consensus for ${entry.bsDate}`,
+    status: mapStatusToCheck(entry.status),
+    expected: report.horizonsEnabled
+      ? 'E1(astronomy-engine), E2(Horizons), E3(astronomia) agree on tithi'
+      : 'E1(astronomy-engine) and E3(astronomia) agree on tithi',
+    actual: `E1=${entry.t1}, E2=${entry.t2 ?? 'skipped'}, E3=${entry.t3}`,
+    ...(entry.note ? { details: entry.note } : {}),
+    metadata: {
+      bsDate: entry.bsDate,
+      adDate: entry.adDate,
+      consensus: entry.status,
+      t1: entry.t1,
+      t2: entry.t2,
+      t3: entry.t3,
+    },
+  }))
+
+  const unified = buildUnifiedReport({
+    source: 'cross-validate',
+    script: 'scripts/validation/cross-validate.ts',
+    command,
+    generatedAt: report.generated,
+    artifactPath: relativeArtifactPath,
+    checks,
+    metadata: {
+      year: report.year,
+      horizonsEnabled: report.horizonsEnabled,
+    },
+  })
+
+  const payload = {
+    ...unified,
+    year: report.year,
+    generated: report.generated,
+    horizonsEnabled: report.horizonsEnabled,
+    summary: report.summary,
+    entries: report.entries,
+  }
+
+  writeJsonArtifact(filepath, payload)
   return filepath
 }
 
@@ -284,7 +337,7 @@ function printSummary(report: ValidationReport): void {
 const _cliArgv = process.argv.slice(2)
 
 if (_cliArgv.includes('--year') || _cliArgv.includes('--from')) {
-  const argv = _cliArgv
+  const argv = _cliArgv[0] === '--' ? _cliArgv.slice(1) : _cliArgv
   const get  = (flag: string) => { const i = argv.indexOf(flag); return i !== -1 ? argv[i + 1] : undefined }
 
   const singleYear   = get('--year')
@@ -292,6 +345,9 @@ if (_cliArgv.includes('--year') || _cliArgv.includes('--from')) {
   const toYear       = get('--to')
   const outputDir    = get('--output') ?? DEFAULT_OUT
   const skipHorizons = argv.includes('--no-horizons')
+  const command = argv.length > 0
+    ? `pnpm run validate:cross -- ${argv.join(' ')}`
+    : 'pnpm run validate:cross'
 
   const years: number[] = singleYear
     ? [parseInt(singleYear, 10)]
@@ -331,7 +387,7 @@ if (_cliArgv.includes('--year') || _cliArgv.includes('--from')) {
     console.log(`\n── BS ${bsYear} ─────────────────────────────────────────────\n`)
 
     const report   = await crossValidateYear(bsYear, { skipHorizons, verbose: true })
-    const filepath = writeReport(report, outputDir)
+    const filepath = writeReport(report, outputDir, command)
 
     printSummary(report)
     console.log(`\n  Report written to: ${filepath}\n`)

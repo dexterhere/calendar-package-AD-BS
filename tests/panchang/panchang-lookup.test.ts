@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { getPanchang, ensurePanchangYear } from '../../src/panchang/panchang-lookup.js'
 import { toAD } from '../../src/converter/index.js'
+import { getMonthDayCount } from '../../src/data/bs-month-lengths.js'
 
 describe('getPanchang', () => {
   beforeAll(async () => {
@@ -35,6 +36,11 @@ describe('getPanchang', () => {
     const result = getPanchang(bs2083)
     // Either null (not loaded) or valid data (if auto-loaded) - both acceptable
     expect(result === null || result !== null).toBe(true)
+  })
+
+  it('throws RangeError for structurally invalid BS dates within supported year range', () => {
+    const invalidDay = getMonthDayCount(2082, 1) + 1
+    expect(() => getPanchang({ year: 2082, month: 1, day: invalidDay })).toThrow(RangeError)
   })
 
   it('returns correct tithi for a known date in BS 2082', () => {

@@ -98,7 +98,43 @@ pnpm build
 pnpm test
 pnpm typecheck
 pnpm lint
+pnpm trust:check
 ```
+
+Core CI gates now run on pull requests and pushes to `main`:
+- `pnpm run typecheck`
+- `pnpm run test`
+- `pnpm run validate:panchang` (lightweight, offline, no Horizons/network dependency)
+- `pnpm run deps:check` (lockfile integrity + dependency hygiene, offline)
+
+## Data maintenance and validation
+
+```bash
+# Generate panchang data with astronomy-engine v2 generator
+pnpm generate:panchang -- --year 2082
+
+# Validate generated data against curated reference dates
+pnpm validate:panchang
+
+# Cross-validate against independent astronomy engines
+pnpm validate:cross -- --year 2082 --no-horizons
+
+# Verify dependency + generated-data trust signals (offline)
+pnpm trust:check
+
+# Refresh generated-data integrity manifest after intentional data updates
+pnpm trust:refresh-manifest
+
+# Run monthly maintenance workflow locally
+pnpm maintenance:monthly
+```
+
+## Trust model and safe validation
+
+- Default local/CI validation is deterministic and offline-first (`typecheck`, `test`, `validate:panchang`, `deps:check`, `trust:check`).
+- `validate:cross` should use `--no-horizons` in routine runs to avoid external network APIs; only enable Horizons for explicit deep investigations.
+- Generated panchang data now has an integrity manifest (`src/data/panchang/integrity-manifest.json`) with canonical SHA-256 hashes and per-year day counts.
+- Integrity checks are trust signals (tamper/reproducibility detection), not astronomical correctness proofs. Keep `validate:panchang` and curated reference review in the workflow.
 
 ## Documentation
 

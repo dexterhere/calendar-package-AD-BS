@@ -31,11 +31,7 @@ export function isAuspicious(date: Date | BSDate): AuspiciousClassification {
 
   // Festivals are generally auspicious
   if (events.some(e => e.type === 'festival')) {
-    // Some festivals have specific auspiciousness based on category
-    const religiousFestival = events.find(e => e.category === 'religious')
-    if (religiousFestival) {
-      return 'auspicious'
-    }
+    return 'auspicious'
   }
 
   // Check panchang for special tithis
