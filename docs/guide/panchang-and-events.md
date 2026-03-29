@@ -1,39 +1,230 @@
 # Panchang and Events
 
-## Panchang model
+## What is panchang?
 
-Panchang data is computed at sunrise and includes:
+Panchang (पञ्चाङ्ग) literally means "five limbs" — the five elements of the Hindu almanac that describe the celestial state of a day. These are used to determine festival dates, auspicious timings, and religious observances across Nepal.
 
-- `tithi`
-- `paksha`
-- `nakshatra`
-- `yoga`
-- `karana`
-- `tithiType` (`normal`, `kshaya`, `vriddhi`)
+| Element | What it means |
+|---|---|
+| **Tithi** | The lunar day — how far the moon has traveled from the sun (in 12° increments). Completes approximately every 24 hours but drifts relative to the solar day. |
+| **Paksha** | Which half of the lunar month — Shukla (waxing, new moon to full moon) or Krishna (waning, full moon to new moon). |
+| **Nakshatra** | The lunar mansion — which of the 27 star clusters the moon occupies. |
+| **Yoga** | The sum of the sun's and moon's longitudes divided into 27 equal parts. Used for timing of auspicious activities. |
+| **Karana** | Half a tithi. There are 11 karanas; some are considered inauspicious (Vishti/Bhadra). |
+
+All five elements are computed at **sunrise** at Kathmandu (27.7172°N, 85.3240°E). This is the standard for Nepali panchang.
+
+## Data coverage
+
+| BS year range | Source |
+|---|---|
+| 2080–2090 | Precomputed JSON, loaded lazily per year |
+| 2000–2079 | Live computation via astronomy-engine at runtime |
+| Outside 2000–2090 | Returns `null` |
+
+Precomputed data is faster and works offline. The live fallback is accurate but adds ~5–10 ms per unique date.
+
+## Loading panchang data
 
 ```ts
-import { getPanchang, ensurePanchangYear } from 'nepali-calendar-engine'
+import { ensurePanchangYear, getPanchang } from 'nepali-calendar-engine'
 
+// Load the year's data once (async, subsequent calls are cached)
 await ensurePanchangYear(2082)
+
+// All queries for that year are now synchronous
 const p = getPanchang({ year: 2082, month: 1, day: 1 })
 ```
 
-## Event resolution
-
-Use event helpers to get events for a day or month:
+To preload all available years at once (e.g. at app startup):
 
 ```ts
-import { getEventsForDate, getEventsForMonth } from 'nepali-calendar-engine'
+import { preloadAllPanchang } from 'nepali-calendar-engine'
 
-const dayEvents = getEventsForDate({ year: 2082, month: 8, day: 3 })
-const monthEvents = getEventsForMonth(2082, 8)
+await preloadAllPanchang()
 ```
 
-## Auspicious-day helpers
+## The PanchangInfo object
 
 ```ts
-import { getAuspiciousDates, isAuspicious } from 'nepali-calendar-engine'
+interface PanchangInfo {
+  tithi: {
+    name: string    // 'Krishna Pratipada'
+    nameNe: string  // 'कृष्ण प्रतिपदा'
+    number: number  // 1–30 (1–15 = Shukla, 16–30 = Krishna; 30 = Amavasya)
+  }
+  paksha: 'shukla' | 'krishna'
+  pakshaName: { en: string; ne: string }
+  nakshatra?: { name: string; nameNe: string }
+  yoga?: { name: string; nameNe: string; number: number }  // 1–27
+  karana?: {
+    name: string
+    nameNe: string
+    number: number        // 1–11
+    inauspicious: boolean // true for Vishti (Bhadra) karana
+  }
+  tithiType: 'normal' | 'kshaya' | 'vriddhi'
+}
+```
 
-const days = getAuspiciousDates(2082, 1, 'marriage')
-const verdict = isAuspicious({ year: 2082, month: 1, day: 10 }, 'marriage')
+## Tithi numbering
+
+Tithi numbers run 1–30 across both pakshas:
+
+| Number | Paksha | Name |
+|---|---|---|
+| 1 | Shukla | Pratipada |
+| 2–14 | Shukla | Dwitiya … Chaturdashi |
+| 15 | Shukla | Purnima (full moon) |
+| 16 | Krishna | Pratipada |
+| 17–29 | Krishna | Dwitiya … Trayodashi |
+| 30 | Krishna | Amavasya (new moon) |
+
+## Kshaya and Vriddhi tithis
+
+Because tithi length (~24 hours) and solar day length (exactly 24 hours) are slightly different, the two can drift:
+
+- **Kshaya (क्षय)** — A tithi completes entirely within one solar day without being present at sunrise. It is "skipped" in the calendar but its religious observance still falls on that day. `tithiType: 'kshaya'`
+
+- **Vriddhi (वृद्धि)** — A tithi is present at two consecutive sunrises — it "spans" two solar days. `tithiType: 'vriddhi'`
+
+These edge cases matter for festival scheduling. For example, if Ekadashi (tithi 11) is kshaya, the fasting observance happens on the kshaya day even though Ekadashi technically didn't begin that morning.
+
+## Custom location support
+
+By default panchang is computed for Kathmandu. Pass custom coordinates to query for other locations:
+
+```ts
+const p = getPanchang(
+  { year: 2082, month: 1, day: 1 },
+  { lat: 28.2096, lon: 83.9856 }  // Pokhara
+)
+```
+
+Custom-location queries always use the live computation fallback (no precomputed JSON for custom locations).
+
+---
+
+## Events and festivals
+
+### Getting events for a date
+
+```ts
+import { getEventsForDate } from 'nepali-calendar-engine'
+
+const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
+// Returns CalendarEvent[]
+```
+
+Each `CalendarEvent`:
+
+```ts
+interface CalendarEvent {
+  id: string                 // 'vijaya-dashami'
+  name: { en: string; ne: string }
+  type: EventType            // 'festival' | 'public_holiday' | 'auspicious_date' | ...
+  category: EventCategory    // 'religious' | 'national' | 'cultural' | 'wedding' | ...
+  isPublicHoliday: boolean
+  description?: { en: string; ne: string }
+}
+```
+
+### Getting all events in a month
+
+```ts
+import { getEventsForMonth } from 'nepali-calendar-engine'
+
+const all = getEventsForMonth(2082, 7)  // all events in Kartik 2082
+```
+
+### The four festival types
+
+Festivals are resolved differently depending on how their date is determined:
+
+| Type | Example | How resolved |
+|---|---|---|
+| `fixed_bs_date` | Maghe Sankranti (Magh 1) | Always the same BS date every year |
+| `tithi_based` | Dashain (Ashwin Shukla Pratipada) | Looks up which BS date has that tithi in panchang |
+| `government_declared` | Constitution Day | Fixed BS date, published by Nepal government |
+| `fixed_ad_date` | International Women's Day (Mar 8) | Converted from the fixed Gregorian date |
+
+Tithi-based resolution requires panchang data. If panchang for the year is not loaded, tithi-based festivals are skipped for that year.
+
+### Adding custom events
+
+Use `registerEvents` to inject events at runtime — useful for organization-specific holidays or admin-curated data:
+
+```ts
+import { registerEvents } from 'nepali-calendar-engine'
+
+registerEvents([
+  {
+    id: 'company-anniversary',
+    name: { en: 'Company Anniversary', ne: 'कम्पनी वार्षिकोत्सव' },
+    type: 'custom',
+    category: 'general',
+    isPublicHoliday: false,
+  }
+])
+```
+
+Custom events registered this way appear in `getEventsForDate` and `getEventsForMonth` results.
+
+---
+
+## Auspicious dates
+
+### What "auspicious" means
+
+The auspicious classification combines:
+
+- Which tithi is active (certain tithis are auspicious or inauspicious by tradition)
+- The nakshatra (some are favorable for specific activities like weddings)
+- The karana (Vishti/Bhadra karana is inauspicious)
+- Whether any inauspicious festivals or periods fall on that day
+
+The categories map to specific life events in Nepali tradition:
+
+| Category | Purpose |
+|---|---|
+| `wedding` | Marriage ceremonies (Vivah) |
+| `bratabandha` | Sacred thread ceremony |
+| `grihapravesh` | Entering a new home |
+| `religious` | General religious observances |
+| `general` | Any auspicious activity |
+
+### Finding auspicious dates in a month
+
+```ts
+import { getAuspiciousDates } from 'nepali-calendar-engine'
+
+const days = getAuspiciousDates(2082, 2, 'wedding')
+
+days.forEach(d => {
+  console.log(`${d.bs.year}/${d.bs.month}/${d.bs.day} — ${d.classification}`)
+  // 2082/2/8 — auspicious
+  // 2082/2/14 — auspicious
+})
+```
+
+### Checking a specific date
+
+```ts
+import { isAuspicious } from 'nepali-calendar-engine'
+
+const result = isAuspicious({ year: 2082, month: 2, day: 14 }, 'wedding')
+// 'auspicious' | 'inauspicious' | 'neutral'
+```
+
+### Using panchang for fine-grained timing
+
+Once you have a date classified as auspicious, use panchang to see the specific tithi and nakshatra:
+
+```ts
+await ensurePanchangYear(2082)
+const p = getPanchang({ year: 2082, month: 2, day: 14 })
+
+console.log(p?.tithi.name)       // 'Shukla Tritiya'
+console.log(p?.nakshatra?.name)  // 'Rohini'  (highly auspicious for weddings)
+console.log(p?.karana?.inauspicious)  // false
 ```

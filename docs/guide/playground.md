@@ -11,7 +11,7 @@ Use the live playground to explore the package behavior directly in the browser.
 
 Open it here:
 
-- [Launch Playground](/playground/)
+- <a href="/playground/" target="_blank">Launch Playground</a>
 
 ## Notes
 

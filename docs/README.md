@@ -13,7 +13,10 @@ This folder contains all project documentation for `nepali-calendar-engine`.
 - [`CREDITS.md`](./CREDITS.md)  
   Project authorship and data sources.
 
-- [`project.md`](./project.md)  
+- [`PLAN.md`](./PLAN.md)
+  Active project plan — phase-by-phase task tracker with status for every item.
+
+- [`project.md`](./project.md)
   Original package planning and technical direction document.
 
 - [`index.md`](./index.md)  
