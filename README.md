@@ -11,7 +11,7 @@
 - Kshaya (skipped) and Vriddhi (repeated) tithi detection
 - Festival and public holiday resolution
 - International observances (fixed AD dates, e.g. World Health Day, Valentine's Day)
-- Year-round international observances across all months (curated fixed AD dates)
+- Year-round international observances across all months (curated fixed AD dates, non-exhaustive)
 - Auspicious/inauspicious date classification
 - English and Nepali labels
 
@@ -147,6 +147,7 @@ pnpm maintenance:monthly
 - Nepal public holiday declarations can change annually. Government gazette and ministry notices remain authoritative.
 - Third-party calendars (Hamro Patro, Drik Panchang, etc.) are treated as **manual spot-check references** only; no automated scraping pipeline is used for them.
 - Store only minimum factual assertions required for verification (date/tithi mappings), not copied proprietary editorial content.
+- International observances are a curated informational dataset (non-public-holiday), not a legal/compliance registry of all global observances.
 - For release candidates, run:
 
 ```bash

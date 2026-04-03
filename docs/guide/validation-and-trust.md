@@ -41,7 +41,18 @@ pnpm trust:check
   - root `LICENSE` presence and package license metadata consistency
   - explicit source mappings for festival and public-holiday datasets
   - baseline structural constraints for legal traceability
+  - observance governance metadata (`authorityTier`, `reviewCadence`, `lastReviewedIsoDate`)
 - This check improves release hygiene and auditability; it is not legal advice.
+
+## International observance curation policy
+
+- International observances are a **curated factual set**, not an exhaustive registry of all possible global days.
+- They are classified as informational events (`fixed_ad_date`, non-public-holiday) and can be filtered separately from Nepal public holidays.
+- Source mappings must declare:
+  - authority tier (`primary_official`, `secondary_authoritative`, or `community_reference`)
+  - review cadence (quarterly/semiannual/annual)
+  - last reviewed date (ISO format)
+- Before release, review and refresh curated observances according to cadence and rerun `pnpm legal:check`.
 
 ## Third-party source legal boundary
 

@@ -29,9 +29,15 @@ describe('Data source maps', () => {
       expect(source.reference.trim().length).toBeGreaterThan(0)
       expect(source.licenseNote.trim().length).toBeGreaterThan(0)
       expect(source.lastVerifiedBsYear).toBeGreaterThanOrEqual(2000)
+      expect(source.lastReviewedIsoDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(['primary_official', 'secondary_authoritative', 'community_reference']).toContain(source.authorityTier)
+      expect(['quarterly', 'semiannual', 'annual']).toContain(source.reviewCadence)
       expect(['official', 'manual_reference', 'computed_public_domain']).toContain(source.usagePolicy)
       if (source.usagePolicy === 'manual_reference') {
         expect(source.automationAllowed).toBe(false)
+      }
+      if (source.usagePolicy === 'official') {
+        expect(source.authorityTier).not.toBe('community_reference')
       }
     }
   })

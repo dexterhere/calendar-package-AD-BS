@@ -69,6 +69,15 @@ function assertSourceFields(prefix: string, source: LegalDataSource, failures: F
   if (source.lastVerifiedBsYear < 2000 || source.lastVerifiedBsYear > 2200) {
     failures.push(fail(`${prefix}.lastVerifiedBsYear`, 'lastVerifiedBsYear is outside expected bounds.'))
   }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(source.lastReviewedIsoDate)) {
+    failures.push(fail(`${prefix}.lastReviewedIsoDate`, 'lastReviewedIsoDate must be YYYY-MM-DD.'))
+  }
+  if (!['primary_official', 'secondary_authoritative', 'community_reference'].includes(source.authorityTier)) {
+    failures.push(fail(`${prefix}.authorityTier`, `Unsupported authorityTier "${source.authorityTier}".`))
+  }
+  if (!['quarterly', 'semiannual', 'annual'].includes(source.reviewCadence)) {
+    failures.push(fail(`${prefix}.reviewCadence`, `Unsupported reviewCadence "${source.reviewCadence}".`))
+  }
   if (source.licenseNote.trim().length === 0) {
     failures.push(fail(`${prefix}.licenseNote`, 'licenseNote must be non-empty.'))
   }
@@ -77,6 +86,9 @@ function assertSourceFields(prefix: string, source: LegalDataSource, failures: F
   }
   if (source.usagePolicy === 'manual_reference' && source.automationAllowed) {
     failures.push(fail(`${prefix}.automationAllowed`, 'manual_reference sources must set automationAllowed=false.'))
+  }
+  if (source.usagePolicy === 'official' && source.authorityTier === 'community_reference') {
+    failures.push(fail(`${prefix}.authorityTier`, 'official usagePolicy cannot use community_reference authority tier.'))
   }
 }
 
