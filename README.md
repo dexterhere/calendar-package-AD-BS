@@ -35,6 +35,22 @@ const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
 console.log({ bsDate, adDate, days: month.days.length, events: events.length })
 ```
 
+### International observance metadata APIs
+
+```ts
+import {
+  listInternationalObservances,
+  getInternationalObservanceById,
+  getInternationalObservancesByAdDate,
+} from 'nepali-calendar-engine'
+
+const all = listInternationalObservances()
+const worldHealth = getInternationalObservanceById('world-health-day')
+const onApr7 = getInternationalObservancesByAdDate(4, 7)
+```
+
+These APIs return curated observance metadata (source tier, review cadence, and confidence) to help downstream apps build transparent UX and filtering.
+
 ## Panchang
 
 Panchang data is computed from planetary positions at sunrise (astronomy-engine, validated against NASA JPL Horizons). All five classical elements are available for any BS date.

@@ -166,6 +166,24 @@ The engine includes curated fixed Gregorian observances (informational, non-publ
 
 These are mapped via `fixed_ad_date`, so matching is deterministic and does not depend on panchang loading.
 
+### Observance metadata for app integration
+
+For observance-focused UIs and filters, you can query curated metadata directly:
+
+```ts
+import {
+  listInternationalObservances,
+  getInternationalObservanceById,
+  getInternationalObservancesByAdDate,
+} from 'nepali-calendar-engine'
+
+const all = listInternationalObservances()
+const worldHealth = getInternationalObservanceById('world-health-day')
+const april7 = getInternationalObservancesByAdDate(4, 7)
+```
+
+Metadata includes source authority, authority tier, review cadence, last-reviewed date, and a derived confidence label (`high`/`medium`/`baseline`).
+
 ### Adding custom events
 
 Use `registerEvents` to inject events at runtime — useful for organization-specific holidays or admin-curated data:

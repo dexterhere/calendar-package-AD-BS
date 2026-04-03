@@ -18,6 +18,11 @@ export {
   getAuspiciousDates,
   registerEvents,
 } from './events/event-engine.js'
+export {
+  listInternationalObservances,
+  getInternationalObservanceById,
+  getInternationalObservancesByAdDate,
+} from './events/observances.js'
 export { isAuspicious } from './events/classifier.js'
 export type {
   CalendarEvent,
@@ -26,3 +31,7 @@ export type {
   EventCategory,
   EventType,
 } from './events/types.js'
+export type {
+  InternationalObservanceMetadata,
+  ObservanceConfidence,
+} from './events/observances.js'
