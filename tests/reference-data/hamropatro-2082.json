@@ -3,7 +3,12 @@
     "source": "Hamro Patro, Drik Panchang, Nepal Government Publications, nepcalendar.com",
     "bsYear": 2082,
     "collectedDate": "2026-03-23",
-    "note": "Ground truth reference data for BS 2082 accuracy comparison"
+    "note": "Ground truth reference data for BS 2082 accuracy comparison",
+    "legalBasis": "Factual calendar dates used for verification and interoperability checks.",
+    "usagePolicy": "manual_reference_only",
+    "acquisitionMethod": "manual_spot_check",
+    "redistributionStatement": "Do not copy proprietary site content; store only minimal factual date assertions needed for validation.",
+    "requiresTermsReview": true
   },
   "dateConversions": {
     "description": "Key BS → AD date mappings verified from multiple sources",
