@@ -26,8 +26,8 @@ describe('Phase 4: Classifier', () => {
     })
 
     it('returns neutral for regular days without events', () => {
-      // A random day in Jestha without major festivals
-      const result = isAuspicious({ year: 2082, month: 2, day: 20 })
+      // A random day in Asar without major festivals
+      const result = isAuspicious({ year: 2082, month: 3, day: 15 })
       expect(result).toBe('neutral')
     })
 
