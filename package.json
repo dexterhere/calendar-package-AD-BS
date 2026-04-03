@@ -46,6 +46,7 @@
     "accuracy:report": "pnpm run accuracy:compare",
     "maintenance:monthly": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/monthly-maintenance.ts",
     "deps:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --lockfile-only",
+    "legal:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-legal.ts",
     "trust:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts",
     "trust:refresh-manifest": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --write-manifest"
   },
