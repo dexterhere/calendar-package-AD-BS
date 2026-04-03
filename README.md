@@ -105,6 +105,7 @@ Core CI gates now run on pull requests and pushes to `main`:
 - `pnpm run typecheck`
 - `pnpm run test`
 - `pnpm run validate:panchang` (lightweight, offline, no Horizons/network dependency)
+- `pnpm run legal:check` (license + dataset provenance/source-map policy)
 - `pnpm run deps:check` (lockfile integrity + dependency hygiene, offline)
 
 ## Data maintenance and validation
@@ -135,6 +136,26 @@ pnpm maintenance:monthly
 - `validate:cross` should use `--no-horizons` in routine runs to avoid external network APIs; only enable Horizons for explicit deep investigations.
 - Generated panchang data now has an integrity manifest (`src/data/panchang/integrity-manifest.json`) with canonical SHA-256 hashes and per-year day counts.
 - Integrity checks are trust signals (tamper/reproducibility detection), not astronomical correctness proofs. Keep `validate:panchang` and curated reference review in the workflow.
+- Public holiday and festival datasets now require explicit source mappings checked by `legal:check`; this enforces traceability and release hygiene.
+
+## Legal and compliance guardrails
+
+- This package is open-source under the MIT License (`LICENSE` at repository root).
+- Validation scripts enforce metadata and provenance completeness; they do **not** replace legal advice.
+- Nepal public holiday declarations can change annually. Government gazette and ministry notices remain authoritative.
+- Third-party calendars (Hamro Patro, Drik Panchang, etc.) are treated as **manual spot-check references** only; no automated scraping pipeline is used for them.
+- Store only minimum factual assertions required for verification (date/tithi mappings), not copied proprietary editorial content.
+- For release candidates, run:
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm validate:panchang
+pnpm legal:check
+pnpm deps:check
+pnpm trust:check
+pnpm validate:cross -- --year 2082 --no-horizons
+```
 
 ## Documentation
 
