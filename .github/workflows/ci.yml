@@ -44,5 +44,11 @@ jobs:
       - name: Lightweight validation (offline)
         run: pnpm run validate:panchang
 
+      - name: Legal and provenance checks
+        run: pnpm run legal:check
+
+      - name: Trust checks
+        run: pnpm run deps:check && pnpm run trust:check
+
       - name: Build docs
         run: pnpm run docs:build
