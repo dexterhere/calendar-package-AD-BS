@@ -10,6 +10,8 @@
 - Location-aware panchang for any observer coordinates (Kathmandu default)
 - Kshaya (skipped) and Vriddhi (repeated) tithi detection
 - Festival and public holiday resolution
+- International observances (fixed AD dates, e.g. World Health Day, Valentine's Day)
+- Year-round international observances across all months (curated fixed AD dates)
 - Auspicious/inauspicious date classification
 - English and Nepali labels
 

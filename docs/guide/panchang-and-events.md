@@ -150,6 +150,22 @@ Festivals are resolved differently depending on how their date is determined:
 
 Tithi-based resolution requires panchang data. If panchang for the year is not loaded, tithi-based festivals are skipped for that year.
 
+### International observances included
+
+The engine includes curated fixed Gregorian observances (informational, non-public-holiday), such as:
+
+- Valentine's Day (Feb 14)
+- International Day of Sport for Development and Peace (Apr 6)
+- World Health Day (Apr 7)
+- World Teachers' Day (Oct 5)
+- International Day of Peace (Sep 21)
+- International Day of Education (Jan 24)
+- International Youth Day (Aug 12)
+- World Diabetes Day (Nov 14)
+- World AIDS Day (Dec 1)
+
+These are mapped via `fixed_ad_date`, so matching is deterministic and does not depend on panchang loading.
+
 ### Adding custom events
 
 Use `registerEvents` to inject events at runtime — useful for organization-specific holidays or admin-curated data:
