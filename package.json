@@ -2,14 +2,13 @@
   "name": "nepali-calendar-engine",
   "version": "0.1.0",
   "description": "Bikram Sambat calendar engine — conversion, grid generation, panchang, and festival data for Nepal",
-  "author": "Nepali Calendar Engine Contributors",
-  "contributors": [
-    {
-      "name": "Core Maintainers",
-      "role": "Package Maintainers"
-    }
-  ],
+  "author": "Prince Bhagat <prince.bhagat@peoplepetsplaces.org>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dexterhere/calendar-package-AD-BS.git"
+  },
+  "homepage": "https://github.com/dexterhere/calendar-package-AD-BS#readme",
   "type": "module",
   "packageManager": "pnpm@10.18.3",
   "exports": {
@@ -28,10 +27,13 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "site:dev": "pnpm run docs:dev",
+    "site:preview": "pnpm run docs:build && pnpm run docs:preview",
+    "docs:sync-playground-assets": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/sync-docs-playground-assets.ts",
     "docs:api": "typedoc --options typedoc.json",
-    "docs:dev": "typedoc --options typedoc.json && vitepress dev docs",
-    "docs:build": "typedoc --options typedoc.json && vitepress build docs",
-    "docs:preview": "vitepress preview docs",
+    "docs:dev": "typedoc --options typedoc.json && pnpm run docs:sync-playground-assets && vitepress dev docs --port 5173 --strictPort",
+    "docs:build": "typedoc --options typedoc.json && pnpm run docs:sync-playground-assets && vitepress build docs",
+    "docs:preview": "vitepress preview docs --port 4173 --strictPort",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
