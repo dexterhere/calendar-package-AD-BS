@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Nepali Calendar Engine',
   description: 'Documentation for nepali-calendar-engine',
+  base: '/calendar-package-AD-BS/',
   cleanUrls: true,
   ignoreDeadLinks: true,
   themeConfig: {
