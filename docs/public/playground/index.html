@@ -626,13 +626,30 @@
   </div>
 
   <script type="module">
-    import {
+    const DIST_CANDIDATES = [
+      '/dist/index.js',
+      '../dist/index.js',
+      './dist/index.js',
+    ];
+
+    async function loadCalendarModule() {
+      for (const path of DIST_CANDIDATES) {
+        try {
+          return await import(path);
+        } catch {
+          // Try next candidate path
+        }
+      }
+      throw new Error('Failed to load calendar bundle. Ensure docs/public/dist/index.js exists and playground paths are correct.')
+    }
+
+    const {
       getMonthCalendar, getMonthDays,
       toBS, toAD, today, formatBS,
       getPanchang, ensurePanchangYear, preloadAllPanchang,
       getEventsForDate, getEventsForMonth, getAuspiciousDates,
       isAuspicious, nextMonth, prevMonth
-    } from '/dist/index.js';
+    } = await loadCalendarModule();
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);

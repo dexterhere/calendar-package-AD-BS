@@ -76,7 +76,7 @@ export async function getMonthCalendar(
   const days: CalendarDay[] = []
 
   // Overflow days from the previous month (to complete the first week row)
-  if (opts.includeAdjacentDays && startWeekday > 0) {
+  if (opts.includeAdjacentDays && startWeekday > 0){
     const prevMonth = bsMonth === 1 ? 12 : bsMonth - 1
     const prevYear = bsMonth === 1 ? bsYear - 1 : bsYear
     const prevMonthDays = getMonthDays(prevYear, prevMonth)

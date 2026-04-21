@@ -1,5 +1,9 @@
 # Panchang and Events
 
+This guide covers the most domain-specific part of the package: daily almanac data, festival resolution, observance metadata, and general auspicious-date classification.
+
+If you are building a simple calendar UI, you can often consume these fields through `getMonthCalendar()` without calling every low-level API yourself.
+
 ## What is panchang?
 
 Panchang (पञ्चाङ्ग) literally means "five limbs" — the five elements of the Hindu almanac that describe the celestial state of a day. These are used to determine festival dates, auspicious timings, and religious observances across Nepal.
@@ -23,6 +27,12 @@ All five elements are computed at **sunrise** at Kathmandu (27.7172°N, 85.3240�
 | Outside 2000–2090 | Returns `null` |
 
 Precomputed data is faster and works offline. The live fallback is accurate but adds ~5–10 ms per unique date.
+
+In practice, this means:
+
+- Use precomputed years when possible for high-throughput APIs.
+- Preload the year you serve most often.
+- Expect custom-location requests to be more expensive than Kathmandu defaults.
 
 ## Loading panchang data
 
@@ -103,6 +113,8 @@ const p = getPanchang(
 
 Custom-location queries always use the live computation fallback (no precomputed JSON for custom locations).
 
+That is the right tradeoff for correctness, but you should avoid calling it repeatedly with many unique coordinates unless you actually need observer-specific sunrise behavior.
+
 ---
 
 ## Events and festivals
@@ -129,6 +141,8 @@ interface CalendarEvent {
 }
 ```
 
+Some events also include provenance metadata in runtime results so applications can explain where the event came from and whether it mirrors a government holiday or a curated festival rule.
+
 ### Getting all events in a month
 
 ```ts
@@ -149,6 +163,8 @@ Festivals are resolved differently depending on how their date is determined:
 | `fixed_ad_date` | International Women's Day (Mar 8) | Converted from the fixed Gregorian date |
 
 Tithi-based resolution requires panchang data. If panchang for the year is not loaded, tithi-based festivals are skipped for that year.
+
+For best results, preload the target year before doing festival-heavy month or range queries.
 
 ### International observances included
 
@@ -184,6 +200,12 @@ const april7 = getInternationalObservancesByAdDate(4, 7)
 
 Metadata includes source authority, authority tier, review cadence, last-reviewed date, and a derived confidence label (`high`/`medium`/`baseline`).
 
+### Important scope boundary
+
+- International observances in this package are **curated informational records**.
+- They are intentionally not treated as legal/compliance declarations or Nepal government holidays.
+- For policy-sensitive workflows, always combine package output with your organization’s legal/compliance review process.
+
 ### Adding custom events
 
 Use `registerEvents` to inject events at runtime — useful for organization-specific holidays or admin-curated data:
@@ -203,6 +225,10 @@ registerEvents([
 ```
 
 Custom events registered this way appear in `getEventsForDate` and `getEventsForMonth` results.
+
+> Note: the current `registerEvents()` pathway stores custom events but does not yet include built-in date filtering logic for them. If you need production-grade custom event scheduling, add explicit date metadata and filtering in your integration layer (or extend engine support).
+
+That means `registerEvents()` is best treated today as an extension hook for controlled integrations, not as a full custom-calendar subsystem.
 
 ---
 
@@ -246,9 +272,11 @@ days.forEach(d => {
 ```ts
 import { isAuspicious } from 'nepali-calendar-engine'
 
-const result = isAuspicious({ year: 2082, month: 2, day: 14 }, 'wedding')
+const result = isAuspicious({ year: 2082, month: 2, day: 14 })
 // 'auspicious' | 'inauspicious' | 'neutral'
 ```
+
+If you need purpose-specific classification such as wedding-focused logic, add a domain policy layer in your application. The package's general classification is useful as a signal, but not as a full religious authority.
 
 ### Using panchang for fine-grained timing
 

@@ -2,6 +2,8 @@
 
 `getMonthCalendar` is the primary function for building Nepali calendar UIs. It returns a complete grid of days for a BS month, with each day pre-populated with panchang, events, and metadata.
 
+For most applications, this is the highest-level API you should start with. It gives you a UI-ready month model so you do not need to stitch together conversion, panchang, and event calls yourself.
+
 ## Basic usage
 
 ```ts
@@ -11,6 +13,8 @@ const calendar = await getMonthCalendar(2082, 1)  // Baishakh, BS 2082
 ```
 
 The function is **async** because it loads panchang data for the year on first call. Subsequent calls for the same year are fast — the data is cached in memory.
+
+If you do not need panchang or events, you can disable those enrichments and use the function as a lightweight month-grid generator.
 
 ## CalendarMonth structure
 
@@ -27,6 +31,8 @@ interface CalendarMonth {
   days: CalendarDay[]        // 35–42 days (always complete weeks)
 }
 ```
+
+The `days` array is intentionally flat. Many applications render it directly into a 7-column grid by iterating in order and breaking rows every 7 cells.
 
 ## CalendarDay structure
 
@@ -73,6 +79,16 @@ Sun Mon Tue Wed Thu Fri Sat
 
 This layout matches what physical Nepali calendars and most calendar UIs display.
 
+## When to use this API
+
+Use `getMonthCalendar()` when you need:
+
+- A month view in React, Vue, Angular, React Native, or server-rendered HTML.
+- A compact per-day object that already includes BS date, AD date, labels, and event context.
+- A predictable 35-42 cell grid without writing your own padding logic.
+
+Do not use it if you only need a single date conversion or just the month length. In those cases, `toAD()`, `toBS()`, or `getMonthDays()` are simpler.
+
 ## Options
 
 All three options default to `true`. Pass `false` to skip enrichment you don't need:
@@ -84,6 +100,12 @@ const calendar = await getMonthCalendar(2082, 1, {
   enrichEvents: true,         // populate day.events (default: true)
 })
 ```
+
+Recommended defaults by use case:
+
+- Public calendar UI: keep all defaults enabled.
+- Fast admin/month picker: disable `enrichPanchang` and `enrichEvents`.
+- SSR page generation: preload year data before calling this repeatedly.
 
 Disabling `enrichPanchang` and `enrichEvents` is useful for rendering a bare date grid when you only need BS/AD dates and weekdays.
 
@@ -131,7 +153,10 @@ nextMonth(2082, 12)  // → { year: 2083, month: 1 }
 prevMonth(2082, 1)   // → { year: 2081, month: 12 }
 
 // Get a range of months (useful for week/year views)
-monthRange(2082, 1, 3)
+monthRange(
+  { year: 2082, month: 1, day: 1 },
+  { year: 2082, month: 3, day: 1 }
+)
 // → [{ year: 2082, month: 1 }, { year: 2082, month: 2 }, { year: 2082, month: 3 }]
 ```
 
@@ -188,3 +213,10 @@ getMonthDays(2082, 12)  // 30
 ```
 
 `getMonthDays` is synchronous and O(1).
+
+## Practical integration advice
+
+- Treat `calendar.days` as your source of truth for a month screen.
+- Use the provided `ad` value for tooltips, dual-date displays, or API responses.
+- Use `isCurrentMonth` to dim overflow cells instead of filtering them out.
+- Use `classification` as a display hint, not as a substitute for domain-specific muhurat rules.

@@ -1,6 +1,26 @@
 # Getting Started
 
-## Installation
+This guide is written for application developers integrating the package for the first time. It focuses on the shortest path to a correct integration, while also calling out the mistakes that most often cause calendar bugs.
+
+## Before you begin
+
+This package is best suited for:
+
+- Backend services that need BS to AD conversion or panchang APIs.
+- Frontend calendar UIs that need pre-shaped month data.
+- Internal tools that need transparent festival and observance metadata.
+
+This package is not a full consumer app. You are responsible for your own UI, storage, authentication, and product-specific business rules.
+
+## Structured setup (application users)
+
+1. Install Node.js 18+.
+2. Add the package with your package manager.
+3. Import only from the package root (`nepali-calendar-engine`).
+4. Run a smoke test (AD→BS and BS→AD).
+5. Keep all AD date reads UTC-safe via `getUTC*`.
+
+### Installation
 
 ```bash
 # pnpm
@@ -14,6 +34,27 @@ yarn add nepali-calendar-engine
 ```
 
 **Requirements:** Node.js 18+. The package ships both ESM and CommonJS bundles — no bundler config needed.
+
+---
+
+## Setup smoke test
+
+```ts
+import { toBS, toAD } from 'nepali-calendar-engine'
+
+const bs = toBS(new Date('2025-04-13'))
+const ad = toAD({ year: 2082, month: 1, day: 1 })
+
+console.log(bs)
+console.log(ad.getUTCFullYear(), ad.getUTCMonth(), ad.getUTCDate())
+```
+
+Expected result:
+
+- `bs` should be `{ year: 2081, month: 12, day: 30 }` if your input date is April 13, 2025 UTC.
+- `ad` should represent `2025-04-14T00:00:00.000Z`.
+
+If that basic round-trip does not behave as expected, stop there and fix the integration before building UI or business logic on top.
 
 ---
 
@@ -40,7 +81,7 @@ const ad = toAD({ year: 2082, month: 1, day: 1 })
 // Always use UTC getters — the returned Date is UTC midnight
 console.log(ad.getUTCFullYear()) // 2025
 console.log(ad.getUTCMonth())    // 3  (0-indexed, so April)
-console.log(ad.getUTCDate())     // 13
+console.log(ad.getUTCDate())     // 14
 ```
 
 > **Important:** `toAD()` returns a `Date` at UTC midnight. Use `getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()` — not the local getters — to avoid timezone off-by-one errors.
@@ -52,7 +93,12 @@ import { today } from 'nepali-calendar-engine'
 
 const todayBS = today()
 console.log(todayBS)
-// { year: 2082, month: 12, day: 14 }  (whatever today's BS date is)
+// {
+//   bs: { year, month, day },
+//   ad: Date,
+//   weekday: { en, ne },
+//   monthName: { en, ne }
+// }
 ```
 
 ### Format a BS date
@@ -139,6 +185,13 @@ console.log(p?.tithiType)        // 'normal' | 'kshaya' | 'vriddhi'
 
 `getPanchang` returns `null` if no data exists for the date (outside precomputed range without fallback). If you call `getMonthCalendar`, panchang is already preloaded for you.
 
+For server applications, a good pattern is:
+
+```ts
+await ensurePanchangYear(2082)
+// then handle many requests for that year without repeated setup work
+```
+
 ---
 
 ## Step 5 — Get events and festivals
@@ -180,9 +233,31 @@ weddingDays.forEach(d => {
 })
 
 // Check a specific date
-const verdict = isAuspicious({ year: 2082, month: 2, day: 14 }, 'wedding')
+const verdict = isAuspicious({ year: 2082, month: 2, day: 14 })
 console.log(verdict) // 'auspicious' | 'inauspicious' | 'neutral'
 ```
+
+`isAuspicious()` returns the package's general classification for the day. If your product needs purpose-specific muhurat rules such as a wedding-only decision, treat the returned value as a baseline signal rather than a legal or religious final verdict.
+
+---
+
+## Step 7 — Query international observance metadata
+
+For globally-recognized observance UX (labels, badges, source transparency), use the metadata APIs:
+
+```ts
+import {
+  listInternationalObservances,
+  getInternationalObservanceById,
+  getInternationalObservancesByAdDate,
+} from 'nepali-calendar-engine'
+
+const all = listInternationalObservances()
+const worldHealth = getInternationalObservanceById('world-health-day')
+const april7Observances = getInternationalObservancesByAdDate(4, 7)
+```
+
+These endpoints return curated informational observances (not legal/public-holiday declarations), including source/governance metadata.
 
 ---
 
@@ -206,6 +281,8 @@ import type {
 } from 'nepali-calendar-engine'
 ```
 
+When in doubt, prefer importing types from the root package instead of deep module paths. That keeps your code aligned with the supported public API.
+
 ---
 
 ## Common mistakes
@@ -220,6 +297,8 @@ new Date(2025, 3, 14)  // month 3 = April (0-indexed)
 toAD({ year: 2082, month: 1, day: 1 })  // month 1 = Baishakh (1-indexed)
 ```
 
+BS months are domain months, not JavaScript month indexes.
+
 ### Use UTC getters on the returned Date
 
 ```ts
@@ -231,7 +310,7 @@ ad.getFullYear()  // may be 2025 or 2024 depending on timezone
 // Correct
 ad.getUTCFullYear()  // always 2025
 ad.getUTCMonth()     // always 3 (April, 0-indexed)
-ad.getUTCDate()      // always 13
+ad.getUTCDate()      // always 14
 ```
 
 ### Await getMonthCalendar
@@ -263,10 +342,53 @@ for (const month of months) {
 
 ---
 
+## Integration checklist for production apps
+
+Before shipping your integration:
+
+1. Use UTC-safe handling when reading AD `Date` values from conversion APIs.
+2. Keep BS month/day validation on user input (month 1–12, day per month/year).
+3. Distinguish **informational observances** (`fixed_ad_date`) from government public holidays.
+4. Preload panchang year(s) for high-throughput date queries.
+5. Surface fallbacks explicitly when APIs return `null` (out-of-range or unavailable data).
+6. Document your own product policy for disputed or annually changing public holidays.
+
+## Suggested integration patterns
+
+### Backend API
+
+- Preload the current BS year during service startup.
+- Convert incoming dates to a normalized internal shape.
+- Return both BS and AD when possible so clients do not reimplement conversion rules.
+
+### Frontend calendar UI
+
+- Use `getMonthCalendar()` as the main source for a month screen.
+- Render `isCurrentMonth`, `isToday`, `events`, and `classification` directly.
+- Do not rebuild tithi or holiday logic in the UI.
+
+### Batch/reporting jobs
+
+- Call `ensurePanchangYear()` once per target year.
+- Reuse the same process to benefit from in-memory caches.
+- Log unsupported dates explicitly instead of silently dropping them.
+
+## Troubleshooting quick reference
+
+| Symptom | Most likely cause | Fix |
+|---|---|---|
+| Off-by-one AD day | Local timezone getters used | Use `getUTC*` getters |
+| `getPanchang` returns `null` | Year not loaded or unsupported range | Call `ensurePanchangYear`, verify range |
+| Unexpected missing festival | Tithi-based date and year mismatch | Preload year, check `searchMonth` + tithi context |
+| Duplicate holiday confusion | Festival mirrored with government holiday record | Use `provenance.reference` and `isPublicHoliday` fields |
+
+---
+
 ## Next steps
 
 - [What is BS?](./what-is-bs) — understand the calendar system
 - [Date Conversion](./date-conversion) — how the algorithms work
 - [Calendar Grid](./calendar-grid) — full CalendarDay structure
 - [Panchang and Events](./panchang-and-events) — panchang data, festivals, auspicious dates
+- [Limits and Guarantees](./limits-and-guarantees) — supported ranges, trust boundaries, and caveats
 - [API Reference](../api/reference/README) — complete function signatures

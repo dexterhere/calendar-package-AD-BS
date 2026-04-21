@@ -21,6 +21,23 @@
 pnpm add nepali-calendar-engine
 ```
 
+## Structured setup (application users)
+
+1. Install Node.js 18+.
+2. Install the package with your package manager (`pnpm`, `npm`, or `yarn`).
+3. Import from the root package export (`nepali-calendar-engine`) only.
+4. Validate your runtime wiring with a minimal conversion smoke test.
+5. For date outputs from `toAD()`, always use UTC getters (`getUTCFullYear()`, `getUTCMonth()`, `getUTCDate()`).
+
+```ts
+import { toBS, toAD } from 'nepali-calendar-engine'
+
+const bs = toBS(new Date('2025-04-13'))
+const ad = toAD({ year: 2082, month: 1, day: 1 })
+
+console.log(bs, ad.getUTCFullYear(), ad.getUTCMonth(), ad.getUTCDate())
+```
+
 ## Quick Start
 
 ```ts
@@ -112,6 +129,18 @@ Sunrise shifts slightly by location; on most days the tithi is identical to Kath
 ## Development
 
 ```bash
+# Install exact locked dependencies
+pnpm install --frozen-lockfile
+
+# Library watcher (builds package files only; no URL/server)
+pnpm dev
+
+# Local docs + playground web server (prints URL, usually http://localhost:5173)
+pnpm site:dev
+
+# Production-like local preview (prints URL, usually http://localhost:4173)
+pnpm site:preview
+
 pnpm build
 pnpm test
 pnpm typecheck
@@ -173,6 +202,7 @@ pnpm validate:panchang
 pnpm legal:check
 pnpm deps:check
 pnpm trust:check
+pnpm audit --prod
 pnpm validate:cross -- --year 2082 --no-horizons
 ```
 
@@ -180,6 +210,7 @@ pnpm validate:cross -- --year 2082 --no-horizons
 
 All detailed docs are under [`docs/`](./docs/):
 
+- [`SECURITY.md`](./SECURITY.md) - security policy, reporting expectations, and trust model
 - [`docs/README.md`](./docs/README.md) - documentation index
 - [`docs/PROJECT-ANALYSIS.md`](./docs/PROJECT-ANALYSIS.md) - deep project analysis
 - [`docs/TESTING-GUIDE.md`](./docs/TESTING-GUIDE.md) - testing guide
@@ -189,8 +220,13 @@ All detailed docs are under [`docs/`](./docs/):
 For local docs site development and build:
 
 ```bash
+# Starts web server and prints URL
 pnpm run docs:dev
+
+# Builds static docs output
 pnpm run docs:build
+
+# Serves built docs and prints URL
 pnpm run docs:preview
 ```
 
@@ -201,3 +237,18 @@ pnpm run docs:api
 ```
 
 An interactive browser playground is available in the docs site at `/playground/` (source: `docs/public/playground/index.html`).
+
+### Website, docs, and playground
+
+- Landing page + docs are served by VitePress.
+- Playground is part of the website and accessible from the docs UI.
+
+- The playground imports the built package bundle from `/dist/index.js`.
+- Docs commands automatically sync these assets into `docs/public/dist/` so `/playground/` resolves correctly in dev and static builds.
+- If you ever see a playground 404 after changes, run:
+
+```bash
+pnpm run build
+pnpm run docs:sync-playground-assets
+pnpm run docs:build
+```

@@ -143,7 +143,7 @@ Baishakh 1, 2082:
 
 **Location:** `tests/`
 
-Comprehensive Vitest test suite with 158 tests covering:
+Comprehensive Vitest test suite covering:
 
 - **Converter Tests** (57 tests)
   - BS to AD conversion
@@ -222,9 +222,9 @@ classifyDateForPurpose(date, purpose): AuspiciousClassification
 ## Data Coverage
 
 ### Panchang Data
-- **Years:** BS 2082–2087 (AD 2025–2030)
-- **Includes:** Tithi, Paksha, Nakshatra for all 365/366 days per year
-- **Total:** 2,191 days of panchang data
+- **Precomputed years:** BS 2080–2090
+- **Fallback computation years:** BS 2000–2079
+- **Includes:** Tithi, Paksha, Nakshatra, Yoga, and Karana
 
 ### Festivals
 - **40+ major festivals** including:
@@ -264,7 +264,7 @@ classifyDateForPurpose(date, purpose): AuspiciousClassification
 
 ### Tests fail after code changes
 - Run `pnpm build` to rebuild
-- Clear dist folder: `rm -rf dist && pnpm build`
+- Re-sync docs playground assets if docs previews fail: `pnpm run docs:sync-playground-assets`
 - Check for TypeScript errors: `pnpm typecheck`
 
 ## Next Steps for Production
@@ -281,6 +281,4 @@ classifyDateForPurpose(date, purpose): AuspiciousClassification
 
 ---
 
-**Package Version:** 0.1.0  
-**Last Updated:** March 22, 2026  
-**Test Coverage:** 158 tests passing ✅
+**Package Version:** 0.1.0

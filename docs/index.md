@@ -1,6 +1,6 @@
 # nepali-calendar-engine
 
-A TypeScript package for Bikram Sambat (BS) calendar conversion, panchang lookup, and festival resolution. Zero runtime dependencies. Works in Node.js, Next.js, NestJS, and React Native.
+A TypeScript package for Bikram Sambat (BS) date conversion, month-calendar generation, panchang lookup, and event resolution. It is designed as a developer-facing engine that other applications can build on top of, not as a full end-user app.
 
 ```bash
 pnpm add nepali-calendar-engine
@@ -8,16 +8,27 @@ pnpm add nepali-calendar-engine
 
 ---
 
+## Start here
+
+If you are evaluating the package for a new project, read in this order:
+
+1. [Getting Started](./guide/getting-started) for the first successful integration.
+2. [Limits and Guarantees](./guide/limits-and-guarantees) for supported ranges, accuracy boundaries, and what the package does not promise.
+3. [Validation and Trust](./guide/validation-and-trust) for the release and verification model.
+4. [API Reference](./api/reference/README) for full signatures and types.
+
+---
+
 ## What do you want to do?
 
-### "I want to convert a date between BS and AD"
+### "I want to convert dates between BS and AD"
 
 ```ts
 import { toBS, toAD, today } from 'nepali-calendar-engine'
 
-toBS(new Date('2025-04-13'))         // → { year: 2081, month: 12, day: 29 }
-toAD({ year: 2082, month: 1, day: 1 }).getUTCFullYear()  // → 2025
-today()                              // → current date in BS
+toBS(new Date(Date.UTC(2025, 3, 14))) // → { year: 2082, month: 1, day: 1 }
+toAD({ year: 2082, month: 1, day: 1 }).toISOString().slice(0, 10) // → '2025-04-14'
+today() // → { bs, ad, weekday, monthName }
 ```
 
 → [Getting Started](./guide/getting-started) · [Conversion Algorithm](./guide/date-conversion)
@@ -38,13 +49,13 @@ const cal = await getMonthCalendar(2082, 1)
 
 ---
 
-### "I want panchang, festival, or auspicious date data"
+### "I want panchang, festival, or auspicious-date data"
 
 ```ts
 import { getPanchang, getEventsForDate, getAuspiciousDates } from 'nepali-calendar-engine'
 
 getPanchang({ year: 2082, month: 1, day: 1 })
-// → { tithi: 'Krishna Pratipada', paksha: 'krishna', nakshatra: 'Vishakha', ... }
+// → { tithi: { number: 16, ... }, paksha: 'krishna', nakshatra: {...}, ... }
 
 getEventsForDate({ year: 2082, month: 7, day: 15 })
 // → [{ name: 'Vijaya Dashami', isPublicHoliday: true, ... }]
@@ -63,9 +74,18 @@ getAuspiciousDates(2082, 2, 'wedding')
 
 ---
 
-### "I want to see it running live"
+### "I want to understand reliability, limits, and release hygiene"
 
+→ [Limits and Guarantees](./guide/limits-and-guarantees) · [Validation and Trust](./guide/validation-and-trust)
+
+---
+
+### "I want to explore the website"
+
+→ [Documentation Guide](./guide/getting-started)  
 → [Interactive Playground](./guide/playground)
+
+If you hit a playground 404, run `pnpm run build` and then `pnpm run docs:sync-playground-assets`.
 
 ---
 
@@ -77,11 +97,11 @@ getAuspiciousDates(2082, 2, 'wedding')
 | Calendar grid | Full month with overflow days, week alignment |
 | Panchang (precomputed) | BS 2080–2090 · offline, O(1) lookup |
 | Panchang (live fallback) | BS 2000–2079 · via astronomy-engine |
-| Festivals | 40+ entries · fixed-date, tithi-based, government-declared |
+| Festivals | 40+ entries · fixed BS date, tithi-based, and fixed AD date |
 | Public holidays | BS 2082 (more years in progress) |
-| Auspicious dates | wedding, bratabandha, grihapravesh, religious |
+| Auspicious dates | General classification plus monthly filtered results |
 | Languages | English + Nepali (Devanagari) |
-| Bundle size | 188 KB ESM · 189 KB CJS · zero runtime deps |
+| Runtime model | Embedded data + deterministic computation, no runtime network fetches |
 
 ---
 
@@ -89,12 +109,31 @@ getAuspiciousDates(2082, 2, 'wedding')
 
 - [What is Bikram Sambat?](./guide/what-is-bs) — the calendar system explained
 - [Getting Started](./guide/getting-started) — install and first usage
+- [Limits and Guarantees](./guide/limits-and-guarantees) — supported ranges, caveats, and integration boundaries
 - [Date Conversion](./guide/date-conversion) — how the algorithms work
 - [Calendar Grid](./guide/calendar-grid) — building month views
 - [Panchang and Events](./guide/panchang-and-events) — tithi, festivals, auspicious dates
+- [Developer Journey](./guide/developer-journey) — complete step-by-step logic and extension workflow
 - [Validation and Trust](./guide/validation-and-trust) — data sources and verification
 - [Interactive Playground](./guide/playground) — live browser explorer
 
 ## API Reference
 
 - [All functions](./api/reference/README)
+
+---
+
+## Website experience
+
+This docs site is the project website:
+
+- **Landing page**: this page (`/`)
+- **Documentation**: `/guide/*`
+- **Interactive calendar playground**: `/playground/` (linked from the Playground guide page)
+
+Use these local commands:
+
+```bash
+pnpm run site:dev
+pnpm run site:preview
+```
