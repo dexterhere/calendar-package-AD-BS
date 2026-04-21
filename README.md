@@ -1,5 +1,9 @@
 # Nepali Calendar Engine
 
+[![npm version](https://img.shields.io/npm/v/nepali-calendar-engine)](https://www.npmjs.com/package/nepali-calendar-engine)
+[![npm downloads](https://img.shields.io/npm/dm/nepali-calendar-engine)](https://www.npmjs.com/package/nepali-calendar-engine)
+[![license](https://img.shields.io/npm/l/nepali-calendar-engine)](./LICENSE)
+
 `nepali-calendar-engine` is a TypeScript package for Bikram Sambat (BS) calendar operations, including BS/AD conversion, calendar grid generation, panchang lookup, and festival/holiday classification.
 
 ## Quick Glance
