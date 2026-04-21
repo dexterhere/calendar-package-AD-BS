@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -13,6 +16,7 @@ concurrency:
 jobs:
   quality-gates:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout
@@ -49,6 +53,12 @@ jobs:
 
       - name: Trust checks
         run: pnpm run deps:check && pnpm run trust:check
+
+      - name: Production dependency audit
+        run: pnpm audit --prod
+
+      - name: Build package
+        run: pnpm run build
 
       - name: Build docs
         run: pnpm run docs:build

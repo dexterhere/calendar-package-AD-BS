@@ -5,7 +5,11 @@ coverage/
 .env
 plan/
 docs/.vitepress/dist/
+docs/.vitepress/cache/
 docs/api/reference/
+
+# Local tooling (not part of package source)
+.qoder/
 
 # Claude Code IDE settings (local only)
 .claude/
