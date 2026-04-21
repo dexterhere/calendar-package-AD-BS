@@ -1,0 +1,80 @@
+{
+  "metadata": {
+    "generatedAt": "2026-03-26T09:29:21.876Z",
+    "generatedBy": "pnpm trust:refresh-manifest",
+    "source": "src/data/panchang/*.json (canonicalized JSON, key-sorted)",
+    "algorithm": "sha256",
+    "years": [
+      2080,
+      2081,
+      2082,
+      2083,
+      2084,
+      2085,
+      2086,
+      2087,
+      2088,
+      2089,
+      2090
+    ],
+    "totalDays": 4018,
+    "note": "Offline integrity signal only; combine with validate:panchang for domain correctness."
+  },
+  "files": {
+    "2080.json": {
+      "sha256": "db5c292f42156b3e5d9059c75fa68baee40dd47c9d7989363fe04c0a8971fd29",
+      "bytes": 15318,
+      "days": 365
+    },
+    "2081.json": {
+      "sha256": "528ffc6727af71646a40689aeb1fcc1cfa86fca11259439ebda68592cb349598",
+      "bytes": 15390,
+      "days": 366
+    },
+    "2082.json": {
+      "sha256": "79902006559263d5d60d1684052b39bfd621fc8f78f5068d8f75475df274676f",
+      "bytes": 15314,
+      "days": 365
+    },
+    "2083.json": {
+      "sha256": "288f2f2eb7d289325f018a407cb02af10f92975e07731153c30d8fe8dd63fe94",
+      "bytes": 15334,
+      "days": 365
+    },
+    "2084.json": {
+      "sha256": "1ea810957bd565f6c60cd47b35a49a4aec581dc054942fe293570d788763eaa9",
+      "bytes": 15404,
+      "days": 366
+    },
+    "2085.json": {
+      "sha256": "65c484478c911b920bb4d265796749c77643156f8e873ba613a379e21d8ec9b3",
+      "bytes": 15320,
+      "days": 365
+    },
+    "2086.json": {
+      "sha256": "a682585d58e724e06f0583faec2d8c6790ea0ec5e67c5263e1132b66ce8c530a",
+      "bytes": 15318,
+      "days": 365
+    },
+    "2087.json": {
+      "sha256": "2a47c87c1ca50f08d4d005feb67bb48602756eb7f08dbca806e973fc0b2fd98d",
+      "bytes": 15366,
+      "days": 366
+    },
+    "2088.json": {
+      "sha256": "62c1599a9fce58dd37e345d0ccd417c8bed32f1719878e93539fcd003cda8140",
+      "bytes": 15340,
+      "days": 365
+    },
+    "2089.json": {
+      "sha256": "ad495b93b4fecd80b2bd16bd91f0f325dba28c49d5c688afdcaea50d8b2d3e5a",
+      "bytes": 15313,
+      "days": 365
+    },
+    "2090.json": {
+      "sha256": "7e9119db71b752fb8e4ce9ee79e7cd9c10db9208e9573f0e57a288557db57fef",
+      "bytes": 15400,
+      "days": 365
+    }
+  }
+}

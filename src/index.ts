@@ -18,11 +18,23 @@ export {
   getAuspiciousDates,
   registerEvents,
 } from './events/event-engine.js'
+export {
+  listInternationalObservances,
+  getInternationalObservanceById,
+  getInternationalObservancesByAdDate,
+} from './events/observances.js'
 export { isAuspicious } from './events/classifier.js'
 export type {
   CalendarEvent,
   AuspiciousDay,
   AuspiciousClassification,
+  EventOrigin,
   EventCategory,
   EventType,
+  EventProvenance,
 } from './events/types.js'
+export type {
+  InternationalObservanceMetadata,
+  ObservanceConfidence,
+} from './events/observances.js'
+export type { FallbackOptions } from './panchang/compute-fallback.js'

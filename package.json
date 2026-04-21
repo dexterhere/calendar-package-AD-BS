@@ -1,18 +1,16 @@
 {
-  "name": "@meroevent/nepali-calendar-engine",
+  "name": "nepali-calendar-engine",
   "version": "0.1.0",
   "description": "Bikram Sambat calendar engine — conversion, grid generation, panchang, and festival data for Nepal",
-  "author": "Prince Bhagat <dexter@meroevent.com>",
-  "contributors": [
-    {
-      "name": "Prince Bhagat",
-      "email": "dexter@meroevent.com",
-      "callsign": "Buggy Buck",
-      "role": "Lead Developer & Architect"
-    }
-  ],
+  "author": "Prince Bhagat <prince.bhagat@peoplepetsplaces.org>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dexterhere/calendar-package-AD-BS.git"
+  },
+  "homepage": "https://github.com/dexterhere/calendar-package-AD-BS#readme",
   "type": "module",
+  "packageManager": "pnpm@10.18.3",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -29,19 +27,33 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "site:dev": "pnpm run docs:dev",
+    "site:preview": "pnpm run docs:build && pnpm run docs:preview",
+    "docs:sync-playground-assets": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/sync-docs-playground-assets.ts",
+    "docs:api": "typedoc --options typedoc.json",
+    "docs:dev": "typedoc --options typedoc.json && pnpm run docs:sync-playground-assets && vitepress dev docs --port 5173 --strictPort",
+    "docs:build": "typedoc --options typedoc.json && pnpm run docs:sync-playground-assets && vitepress build docs",
+    "docs:preview": "vitepress preview docs --port 4173 --strictPort",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build && pnpm run test",
-    "generate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-panchang.ts",
+    "generate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-panchang-v2.ts",
     "validate:panchang": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/validate-panchang.ts",
+    "validate:cross": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/validation/cross-validate.ts",
     "collect:holidays": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/collect-holidays.ts",
     "accuracy:compare": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/accuracy-comparison.ts",
-    "accuracy:report": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/generate-accuracy-report.ts"
+    "accuracy:report": "pnpm run accuracy:compare",
+    "maintenance:monthly": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/monthly-maintenance.ts",
+    "deps:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --lockfile-only",
+    "legal:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-legal.ts",
+    "trust:check": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts",
+    "trust:refresh-manifest": "tsx --tsconfig scripts/tsconfig.scripts.json scripts/check-trust.ts --write-manifest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@ishubhamx/panchangam-js": "^2.2.6",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
@@ -52,7 +64,10 @@
     "eslint": "^9.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.21.0",
+    "typedoc": "^0.28.18",
+    "typedoc-plugin-markdown": "^4.11.0",
     "typescript": "^5.7.0",
+    "vitepress": "^1.6.4",
     "vitest": "^3.0.0"
   },
   "engines": {

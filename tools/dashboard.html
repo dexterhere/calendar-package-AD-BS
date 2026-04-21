@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nepali Calendar Engine — Centralized Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --bg-gradient: radial-gradient(circle at top, #111827 0%, #030712 50%, #020617 100%);
+      --surface: rgba(17, 24, 39, 0.7);
+      --surface-hover: rgba(31, 41, 55, 0.8);
+      --border: rgba(255, 255, 255, 0.1);
+      --border-hover: rgba(255, 255, 255, 0.2);
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-ne: 'Noto Sans Devanagari', sans-serif;
+      --sidebar-width: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: rgba(17, 24, 39, 0.95);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0; top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+    }
+
+    .sidebar-header {
+      padding: 32px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 24px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--accent);
+      border-color: rgba(6, 182, 212, 0.2);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2px;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    /* ─── Main Content ─── */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 40px;
+      max-width: 1400px;
+      width: calc(100% - var(--sidebar-width));
+    }
+
+    .page { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .page.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header { margin-bottom: 40px; }
+    header h2 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    header p { color: var(--text-muted); font-size: 1.1rem; }
+
+    /* ─── Dashboard Stats ─── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .stat-label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; display: block; }
+    .stat-value { font-size: 1.75rem; font-weight: 700; display: block; }
+    .stat-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; display: block; }
+
+    /* ─── Grid ─── */
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+    .col-8 { grid-column: span 8; }
+    .col-4 { grid-column: span 4; }
+
+    /* ─── Card ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      height: 100%;
+    }
+
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+
+    /* ─── Calendar ─── */
+    .cal-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .cal-nav-btn {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cal-current { font-size: 1.25rem; font-weight: 700; text-align: center; }
+    .cal-current small { display: block; color: var(--text-muted); font-size: 0.8rem; font-weight: 400; margin-top: 4px; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .cal-day-label { text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; text-transform: uppercase; }
+    .cal-cell {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .cal-cell:hover { border-color: var(--accent); background: rgba(6, 182, 212, 0.05); }
+    .cal-cell.today { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+    .cal-cell.other { opacity: 0.3; }
+    .cal-cell.selected { border-color: var(--accent); background: rgba(6, 182, 212, 0.1); }
+    .cal-cell.auspicious { border-bottom: 3px solid var(--success); }
+    
+    .cell-bs { font-weight: 700; font-size: 1.1rem; }
+    .cell-ad { font-size: 0.75rem; color: var(--text-muted); position: absolute; top: 10px; right: 10px; }
+    .cell-tithi { font-size: 0.65rem; color: var(--accent); font-weight: 500; }
+
+    /* ─── Detail Panel ─── */
+    .detail-section { margin-bottom: 32px; }
+    .detail-section:last-child { margin-bottom: 0; }
+    .detail-title { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dotted var(--border); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key { font-size: 0.9rem; color: var(--text-muted); }
+    .detail-val { font-size: 0.95rem; font-weight: 600; text-align: right; }
+    .ne-text { font-family: var(--font-ne); font-weight: 400; }
+
+    /* ─── Forms ─── */
+    .input-group { margin-bottom: 24px; }
+    .input-group label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 8px; }
+    .input-group input, .input-group select {
+      width: 100%;
+      background: rgba(17, 24, 39, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      outline: none;
+      transition: all 0.2s;
+    }
+    .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary:hover { background: #0891b2; transform: translateY(-1px); }
+
+    /* ─── Result ─── */
+    .result-panel {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-top: 24px;
+    }
+    .json-key { color: var(--accent); }
+    .json-string { color: var(--success); }
+    .json-number { color: var(--warning); }
+
+    /* ─── Utility ─── */
+    .badge { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .empty-icon { width: 64px; height: 64px; margin-bottom: 24px; opacity: 0.2; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    @media (max-width: 1024px) {
+      .col-8, .col-4 { grid-column: span 12; }
+      .sidebar { width: 80px; }
+      .sidebar-header h1, .nav-item span { display: none; }
+      .main-content { margin-left: 80px; width: calc(100% - 80px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Icons -->
+  <svg style="display: none;">
+    <symbol id="icon-layout" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+      <line x1="3" y1="9" x2="21" y2="9"/>
+      <line x1="9" y1="21" x2="9" y2="9"/>
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24">
+      <path d="M23 4v6h-6"/>
+      <path d="M1 20v-6h6"/>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </symbol>
+    <symbol id="icon-award" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="7"/>
+      <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+    </symbol>
+    <symbol id="icon-code" viewBox="0 0 24 24">
+      <polyline points="16 18 22 12 16 6"/>
+      <polyline points="8 6 2 12 8 18"/>
+    </symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </symbol>
+  </svg>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>NEPALI CALENDAR</h1>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="overview">
+        <svg class="nav-icon"><use href="#icon-layout"/></svg>
+        <span>Overview</span>
+      </div>
+      <div class="nav-item" data-page="calendar">
+        <svg class="nav-icon"><use href="#icon-calendar"/></svg>
+        <span>Calendar Explorer</span>
+      </div>
+      <div class="nav-item" data-page="converter">
+        <svg class="nav-icon"><use href="#icon-refresh"/></svg>
+        <span>Date Converter</span>
+      </div>
+      <div class="nav-item" data-page="panchang">
+        <svg class="nav-icon"><use href="#icon-moon"/></svg>
+        <span>Panchang Lookup</span>
+      </div>
+      <div class="nav-item" data-page="events">
+        <svg class="nav-icon"><use href="#icon-award"/></svg>
+        <span>Festivals</span>
+      </div>
+      <div class="nav-item" data-page="api">
+        <svg class="nav-icon"><use href="#icon-code"/></svg>
+        <span>API Sandbox</span>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <!-- PAGE: OVERVIEW -->
+    <section class="page active" id="page-overview">
+      <header>
+        <h2>Dashboard Overview</h2>
+        <p>A comprehensive view of the Nepali calendar engine capabilities.</p>
+      </header>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">System Coverage</span>
+          <span class="stat-value">91 Years</span>
+          <span class="stat-sub">BS 2000 — 2090 (AD 1943—2033)</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Current Date (BS)</span>
+          <span class="stat-value" id="stat-current-bs">...</span>
+          <span class="stat-sub" id="stat-current-ad">...</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Engine Reliability</span>
+          <span class="stat-value">100% Pass</span>
+          <span class="stat-sub">357 Automated Test Cases</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Data Accuracy</span>
+          <span class="stat-value">High Precision</span>
+          <span class="stat-sub">Validated vs NASA JPL Horizons</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="col-8">
+          <div class="card">
+            <h3 class="card-title">Package Use Cases</h3>
+            <div class="detail-section">
+              <div class="detail-row">
+                <div class="detail-key">E-Commerce & Logistics</div>
+                <div class="detail-val">Calculating delivery dates and festive sale periods based on BS calendar.</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">FinTech & Banking</div>
+                <div class="detail-val">Determining bank holidays and fiscal month starts in Nepal.</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">Cultural Platforms</div>
+                <div class="detail-val">Providing accurate Tithi and Panchang for daily religious guidance.</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">Social Apps</div>
+                <div class="detail-val">Event management with automatic Nepali New Year and festival detection.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card">
+            <h3 class="card-title">Technical Specs</h3>
+            <div class="detail-section">
+              <div class="detail-row">
+                <div class="detail-key">Runtime</div>
+                <div class="detail-val">Node.js / Browser</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">Language</div>
+                <div class="detail-val">TypeScript</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">Size</div>
+                <div class="detail-val">~180KB Gzipped</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-key">License</div>
+                <div class="detail-val">MIT</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: CALENDAR -->
+    <section class="page" id="page-calendar">
+      <header>
+        <h2>Calendar Explorer</h2>
+        <p>Interactive grid with full metadata enrichment.</p>
+      </header>
+      <div class="grid">
+        <div class="col-8">
+          <div class="card">
+            <div class="cal-controls">
+              <button class="cal-nav-btn" id="cal-prev">PREVIOUS</button>
+              <div class="cal-current">
+                <span id="cal-month-name">...</span>
+                <small id="cal-month-ne">...</small>
+              </div>
+              <button class="cal-nav-btn" id="cal-next">NEXT</button>
+            </div>
+            <div class="cal-grid" id="calendar-grid">
+              <!-- Grid generated by JS -->
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card" id="detail-card">
+            <div class="empty-state">
+              <svg class="empty-icon"><use href="#icon-search"/></svg>
+              <p>Select a date to view full details</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: CONVERTER -->
+    <section class="page" id="page-converter">
+      <header>
+        <h2>Date Converter</h2>
+        <p>High-precision bidirectional conversion between BS and AD.</p>
+      </header>
+      <div class="grid">
+        <div class="col-6">
+          <div class="card">
+            <h3 class="card-title">BS to AD</h3>
+            <div class="input-group">
+              <label>Year (BS)</label>
+              <input type="number" id="conv-bs-y" value="2082">
+            </div>
+            <div class="input-group">
+              <label>Month (BS)</label>
+              <select id="conv-bs-m">
+                <option value="1">Baishakh</option><option value="2">Jestha</option><option value="3">Ashadh</option>
+                <option value="4">Shrawan</option><option value="5">Bhadra</option><option value="6">Ashwin</option>
+                <option value="7">Kartik</option><option value="8">Mangsir</option><option value="9">Poush</option>
+                <option value="10">Magh</option><option value="11">Falgun</option><option value="12">Chaitra</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Day (BS)</label>
+              <input type="number" id="conv-bs-d" value="1">
+            </div>
+            <button class="btn-primary" id="btn-bs-to-ad">CONVERT TO AD</button>
+            <div class="result-panel" id="res-bs-to-ad">
+              // Result will appear here
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card">
+            <h3 class="card-title">AD to BS</h3>
+            <div class="input-group">
+              <label>Select Date (AD)</label>
+              <input type="date" id="conv-ad-date">
+            </div>
+            <button class="btn-primary" id="btn-ad-to-bs">CONVERT TO BS</button>
+            <div class="result-panel" id="res-ad-to-bs">
+              // Result will appear here
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: PANCHANG -->
+    <section class="page" id="page-panchang">
+      <header>
+        <h2>Panchang Lookup</h2>
+        <p>Vedic astrological elements for any given date.</p>
+      </header>
+      <div class="grid">
+        <div class="col-4">
+          <div class="card">
+            <h3 class="card-title">Target Date</h3>
+            <div class="input-group">
+              <label>Year (BS)</label>
+              <input type="number" id="pan-y" value="2082">
+            </div>
+            <div class="input-group">
+              <label>Month (BS)</label>
+              <input type="number" id="pan-m" value="1" min="1" max="12">
+            </div>
+            <div class="input-group">
+              <label>Day (BS)</label>
+              <input type="number" id="pan-d" value="1" min="1" max="32">
+            </div>
+            <button class="btn-primary" id="btn-pan-lookup">FETCH PANCHANG</button>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="card" id="pan-result-card">
+            <div class="empty-state">
+              <svg class="empty-icon"><use href="#icon-moon"/></svg>
+              <p>Execute lookup to see astrological data</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: EVENTS -->
+    <section class="page" id="page-events">
+      <header>
+        <h2>Festivals & Events</h2>
+        <p>Discovery of national, cultural and religious observances.</p>
+      </header>
+      <div class="card">
+        <div class="cal-controls">
+          <div class="input-group" style="margin-bottom: 0; width: 200px;">
+            <input type="number" id="evt-y" value="2082">
+          </div>
+          <div class="input-group" style="margin-bottom: 0; width: 200px; margin-left: 12px;">
+            <select id="evt-m">
+              <option value="1">Baishakh</option><option value="2">Jestha</option><option value="3">Ashadh</option>
+              <option value="4">Shrawan</option><option value="5">Bhadra</option><option value="6">Ashwin</option>
+              <option value="7">Kartik</option><option value="8">Mangsir</option><option value="9">Poush</option>
+              <option value="10">Magh</option><option value="11">Falgun</option><option value="12">Chaitra</option>
+            </select>
+          </div>
+          <button class="cal-nav-btn" style="margin-left: 12px;" id="btn-load-events">REFRESH LIST</button>
+        </div>
+        <div id="events-container">
+          <!-- Events list -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: API -->
+    <section class="page" id="page-api">
+      <header>
+        <h2>API Sandbox</h2>
+        <p>Test raw engine outputs and explore data structures.</p>
+      </header>
+      <div class="grid">
+        <div class="col-4">
+          <div class="card">
+            <h3 class="card-title">Function Call</h3>
+            <div class="input-group">
+              <label>Engine Method</label>
+              <select id="api-method">
+                <option value="getMonthCalendar">getMonthCalendar()</option>
+                <option value="getPanchang">getPanchang()</option>
+                <option value="getEventsForMonth">getEventsForMonth()</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Arguments (JSON)</label>
+              <textarea id="api-args" style="width:100%; height:100px; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:8px; color:#fff; padding:12px; font-family:monospace;">{ "year": 2082, "month": 1 }</textarea>
+            </div>
+            <button class="btn-primary" id="btn-api-run">RUN METHOD</button>
+          </div>
+        </div>
+        <div class="col-8">
+          <div class="card">
+            <h3 class="card-title">Response</h3>
+            <div class="result-panel" id="api-response" style="max-height: 600px;">
+              // Raw response will appear here
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import {
+      getMonthCalendar, getMonthDays,
+      toBS, toAD, today, formatBS,
+      getPanchang, ensurePanchangYear,
+      getEventsForDate, getEventsForMonth, getAuspiciousDates,
+      isAuspicious, nextMonth, prevMonth
+    } from '../dist/index.js';
+
+    // ─── State ───────────────────────────────────────────────────────────────
+    let currentBS = today();
+    let calView = { year: currentBS.bs.year, month: currentBS.bs.month };
+
+    // ─── UI Helpers ──────────────────────────────────────────────────────────
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => document.querySelectorAll(selector);
+
+    const formatJSON = obj => {
+      const json = JSON.stringify(obj, (k, v) => v instanceof Date ? v.toISOString() : v, 2);
+      return json
+        .replace(/("(?:\\.|[^"\\])*")(\s*:)?/g, (m, p1, p2) => p2 ? `<span class="json-key">${p1}</span>${p2}` : `<span class="json-string">${p1}</span>`)
+        .replace(/\b(\d+)\b/g, '<span class="json-number">$1</span>');
+    };
+
+    // ─── Navigation ──────────────────────────────────────────────────────────
+    $$('.nav-item').forEach(item => {
+      item.onclick = () => {
+        $$('.nav-item').forEach(i => i.classList.remove('active'));
+        $$('.page').forEach(p => p.classList.remove('active'));
+        item.classList.add('active');
+        $(`#page-${item.dataset.page}`).classList.add('active');
+        if (item.dataset.page === 'calendar') loadCalendar();
+      };
+    });
+
+    // ─── Overview ───────────────────────────────────────────────────────────
+    const updateOverview = () => {
+      $('#stat-current-bs').innerText = `${currentBS.bs.year} / ${currentBS.bs.month} / ${currentBS.bs.day}`;
+      $('#stat-current-ad').innerText = currentBS.ad.toLocaleDateString('en-US', { dateStyle: 'full' });
+    };
+
+    // ─── Calendar ───────────────────────────────────────────────────────────
+    async function loadCalendar() {
+      const container = $('#calendar-grid');
+      container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px;">Loading engine data...</div>';
+      
+      const data = await getMonthCalendar(calView.year, calView.month);
+      $('#cal-month-name').innerText = `${data.monthName.en} ${data.year}`;
+      $('#cal-month-ne').innerText = `${data.monthName.ne} ${data.year}`;
+
+      let html = '';
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      days.forEach(d => html += `<div class="cal-day-label">${d}</div>`);
+
+      data.days.forEach((day, idx) => {
+        const isSelected = day.bs.day === currentBS.bs.day && day.bs.month === currentBS.bs.month && day.bs.year === currentBS.bs.year && day.isCurrentMonth;
+        let cls = 'cal-cell';
+        if (!day.isCurrentMonth) cls += ' other';
+        if (day.isToday) cls += ' today';
+        if (isSelected) cls += ' selected';
+        if (day.classification === 'auspicious') cls += ' auspicious';
+
+        html += `
+          <div class="${cls}" onclick="showDayDetail(${idx})">
+            <span class="cell-bs">${day.bs.day}</span>
+            <span class="cell-ad">${day.ad.getUTCDate()}</span>
+            <span class="cell-tithi">${day.panchang ? day.panchang.tithi.name : ''}</span>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+      window.currentMonthData = data;
+    }
+
+    window.showDayDetail = (idx) => {
+      const day = window.currentMonthData.days[idx];
+      const card = $('#detail-card');
+      const p = day.panchang;
+      
+      card.innerHTML = `
+        <div class="detail-section">
+          <div class="detail-title">Selected Date</div>
+          <div class="detail-row"><span class="detail-key">BS Date</span><span class="detail-val">${day.bs.year}-${day.bs.month}-${day.bs.day}</span></div>
+          <div class="detail-row"><span class="detail-key">Nepali</span><span class="detail-val ne-text">${day.bs.year} ${window.currentMonthData.monthName.ne} ${day.bs.day}</span></div>
+          <div class="detail-row"><span class="detail-key">AD Date</span><span class="detail-val">${day.ad.toLocaleDateString('en-US', { dateStyle: 'medium' })}</span></div>
+        </div>
+        ${p ? `
+        <div class="detail-section">
+          <div class="detail-title">Panchang Elements</div>
+          <div class="detail-row"><span class="detail-key">Tithi</span><span class="detail-val">${p.tithi.name} (${p.tithi.number})</span></div>
+          <div class="detail-row"><span class="detail-key">Paksha</span><span class="detail-val">${p.pakshaName.en}</span></div>
+          <div class="detail-row"><span class="detail-key">Nakshatra</span><span class="detail-val">${p.nakshatra ? p.nakshatra.name : 'N/A'}</span></div>
+          <div class="detail-row"><span class="detail-key">Karana</span><span class="detail-val">${p.karana.name}</span></div>
+          <div class="detail-row"><span class="detail-key">Yoga</span><span class="detail-val">${p.yoga.name}</span></div>
+        </div>
+        ` : ''}
+        <div class="detail-section">
+          <div class="detail-title">Classification</div>
+          <div class="detail-row">
+            <span class="detail-key">Type</span>
+            <span class="badge ${day.classification === 'auspicious' ? 'badge-success' : 'badge-warning'}">${day.classification}</span>
+          </div>
+        </div>
+        ${day.events.length ? `
+        <div class="detail-section">
+          <div class="detail-title">Events</div>
+          ${day.events.map(e => `
+            <div class="detail-row"><span class="detail-key">${e.name.en}</span><span class="detail-val"><span class="badge badge-success">${e.type}</span></span></div>
+          `).join('')}
+        </div>
+        ` : ''}
+      `;
+    };
+
+    $('#cal-prev').onclick = () => {
+      const res = prevMonth(calView.year, calView.month);
+      calView = res;
+      loadCalendar();
+    };
+    $('#cal-next').onclick = () => {
+      const res = nextMonth(calView.year, calView.month);
+      calView = res;
+      loadCalendar();
+    };
+
+    // ─── Converter ──────────────────────────────────────────────────────────
+    $('#btn-bs-to-ad').onclick = () => {
+      const date = { year: +$('#conv-bs-y').value, month: +$('#conv-bs-m').value, day: +$('#conv-bs-d').value };
+      try {
+        const ad = toAD(date);
+        $('#res-bs-to-ad').innerHTML = formatJSON({ input: date, result: ad, formatted: ad.toLocaleDateString('en-US', { dateStyle: 'full' }) });
+      } catch (e) {
+        $('#res-bs-to-ad').innerHTML = `<span style="color:var(--danger)">Error: ${e.message}</span>`;
+      }
+    };
+
+    $('#btn-ad-to-bs').onclick = () => {
+      const val = $('#conv-ad-date').value;
+      if (!val) return;
+      try {
+        const bs = toBS(new Date(val));
+        $('#res-ad-to-bs').innerHTML = formatJSON({ input: val, result: bs, formatted: formatBS(bs, 'YYYY MMMM DD') });
+      } catch (e) {
+        $('#res-ad-to-bs').innerHTML = `<span style="color:var(--danger)">Error: ${e.message}</span>`;
+      }
+    };
+
+    // ─── Panchang ──────────────────────────────────────────────────────────
+    $('#btn-pan-lookup').onclick = async () => {
+      const y = +$('#pan-y').value, m = +$('#pan-m').value, d = +$('#pan-d').value;
+      try {
+        await ensurePanchangYear(y);
+        const p = getPanchang({ year: y, month: m, day: d });
+        $('#pan-result-card').innerHTML = `<div class="result-panel" style="margin-top:0">${formatJSON(p)}</div>`;
+      } catch (e) {
+        $('#pan-result-card').innerHTML = `<div style="padding:20px; color:var(--danger)">${e.message}</div>`;
+      }
+    };
+
+    // ─── API Sandbox ──────────────────────────────────────────────────────
+    $('#btn-api-run').onclick = async () => {
+      const method = $('#api-method').value;
+      const args = JSON.parse($('#api-args').value);
+      const output = $('#api-response');
+      output.innerText = 'Executing...';
+      
+      try {
+        let res;
+        if (method === 'getMonthCalendar') res = await getMonthCalendar(args.year, args.month);
+        else if (method === 'getPanchang') { await ensurePanchangYear(args.year); res = getPanchang(args); }
+        else if (method === 'getEventsForMonth') res = getEventsForMonth(args.year, args.month);
+        
+        output.innerHTML = formatJSON(res);
+      } catch (e) {
+        output.innerHTML = `<span style="color:var(--danger)">Error: ${e.message}</span>`;
+      }
+    };
+
+    // ─── Init ───────────────────────────────────────────────────────────────
+    updateOverview();
+    $('#conv-ad-date').valueAsDate = new Date();
+  </script>
+</body>
+</html>

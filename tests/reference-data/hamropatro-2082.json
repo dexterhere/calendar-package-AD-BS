@@ -3,7 +3,12 @@
     "source": "Hamro Patro, Drik Panchang, Nepal Government Publications, nepcalendar.com",
     "bsYear": 2082,
     "collectedDate": "2026-03-23",
-    "note": "Ground truth reference data for BS 2082 accuracy comparison"
+    "note": "Ground truth reference data for BS 2082 accuracy comparison",
+    "legalBasis": "Factual calendar dates used for verification and interoperability checks.",
+    "usagePolicy": "manual_reference_only",
+    "acquisitionMethod": "manual_spot_check",
+    "redistributionStatement": "Do not copy proprietary site content; store only minimal factual date assertions needed for validation.",
+    "requiresTermsReview": true
   },
   "dateConversions": {
     "description": "Key BS → AD date mappings verified from multiple sources",
@@ -58,7 +63,7 @@
       {
         "id": "dashain-day1",
         "name": "Ghatasthapana",
-        "bsMonth": 7, "bsDay": 5,
+        "bsMonth": 6, "bsDay": 6,
         "adDate": "2025-09-22",
         "tithiExpected": 1,
         "pakshaExpected": "shukla",
@@ -67,7 +72,7 @@
       {
         "id": "dashain-day7",
         "name": "Fulpati",
-        "bsMonth": 7, "bsDay": 12,
+        "bsMonth": 6, "bsDay": 13,
         "adDate": "2025-09-28",
         "tithiExpected": 7,
         "pakshaExpected": "shukla",
@@ -76,7 +81,7 @@
       {
         "id": "dashain-day8",
         "name": "Maha Asthami",
-        "bsMonth": 7, "bsDay": 13,
+        "bsMonth": 6, "bsDay": 14,
         "adDate": "2025-09-29",
         "tithiExpected": 8,
         "pakshaExpected": "shukla",
@@ -85,7 +90,7 @@
       {
         "id": "dashain-day9",
         "name": "Maha Nawami",
-        "bsMonth": 7, "bsDay": 14,
+        "bsMonth": 6, "bsDay": 15,
         "adDate": "2025-09-30",
         "tithiExpected": 9,
         "pakshaExpected": "shukla",
@@ -94,7 +99,7 @@
       {
         "id": "vijaya-dashami",
         "name": "Vijaya Dashami",
-        "bsMonth": 7, "bsDay": 15,
+        "bsMonth": 6, "bsDay": 16,
         "adDate": "2025-10-02",
         "tithiExpected": 10,
         "pakshaExpected": "shukla",
@@ -103,7 +108,7 @@
       {
         "id": "kojagrat-purnima",
         "name": "Kojagrat Purnima (Dashain Day 15)",
-        "bsMonth": 7, "bsDay": 19,
+        "bsMonth": 6, "bsDay": 21,
         "adDate": "2025-10-06",
         "tithiExpected": 15,
         "pakshaExpected": "shukla",
@@ -261,7 +266,7 @@
       {
         "id": "constitution-day",
         "name": "Constitution Day",
-        "bsMonth": 5, "bsDay": 3,
+        "bsMonth": 6, "bsDay": 3,
         "adDate": "2025-09-19",
         "source": "fixed BS date"
       }

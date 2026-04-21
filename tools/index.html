@@ -4,26 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nepali Calendar Engine — Interactive Explorer</title>
-  <meta name="description" content="Interactive explorer for @meroevent/nepali-calendar-engine. Browse BS↔AD conversion, calendar grids, panchang data, festivals and more.">
+  <meta name="description" content="Interactive explorer for nepali-calendar-engine. Browse BS↔AD conversion, calendar grids, panchang data, festivals and more.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f1a;
-      --surface: #131829;
-      --surface2: #1a2035;
-      --border: rgba(255,255,255,0.07);
-      --text: #e2e8f0;
-      --text2: #94a3b8;
-      --accent: #6366f1;
-      --accent2: #818cf8;
-      --accent-glow: rgba(33, 33, 56, 0.25);
-      --green: #22c55e;
-      --red: #ef4444;
+      --bg: #030712;
+      --bg-gradient: radial-gradient(circle at top, #1e1b4b 0%, #030712 50%, #020617 100%);
+      --surface: rgba(15, 23, 42, 0.4);
+      --surface2: rgba(30, 41, 59, 0.5);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.15);
+      --text: #f8fafc;
+      --text2: #bac4d8;
+      --text-muted: #64748b;
+      --accent: #8b5cf6;
+      --accent2: #a78bfa;
+      --accent-glow: rgba(139, 92, 246, 0.25);
+      --green: #10b981;
+      --red: #f43f5e;
       --amber: #f59e0b;
       --cyan: #06b6d4;
       --pink: #ec4899;
-      --radius: 12px;
+      --radius: 16px;
       --font: 'Inter', system-ui, sans-serif;
       --font-ne: 'Noto Sans Devanagari', sans-serif;
     }
@@ -31,10 +34,52 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: var(--font);
-      background: var(--bg);
+      background-color: var(--bg);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, transparent 50%, rgba(6, 182, 212, 0.05) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .app { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; position: relative; z-index: 1; }
+    
+    /* Panel Headers */
+    .panel-header {
+      margin-bottom: 24px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .panel-header h2 {
+      font-size: 1.8em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    .panel-header p {
+      color: var(--text2);
+      font-size: 1.05em;
+      line-height: 1.5;
+      max-width: 800px;
     }
     /* ─── Scrollbar ─── */
     ::-webkit-scrollbar { width: 6px; }
@@ -45,28 +90,33 @@
     /* ─── Hero ─── */
     .hero {
       text-align: center;
-      padding: 48px 20px 36px;
+      padding: 64px 20px 48px;
       position: relative;
+      margin-bottom: 20px;
     }
     .hero::before {
       content: '';
       position: absolute;
-      top: -80px; left: 50%;
+      top: -120px; left: 50%;
       transform: translateX(-50%);
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 40%, transparent 70%);
       pointer-events: none;
       z-index: 0;
+      filter: blur(40px);
     }
     .hero h1 {
-      font-size: 2.6em;
+      font-size: 3.2em;
       font-weight: 800;
-      background: linear-gradient(135deg, #818cf8, #c084fc, #f0abfc);
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf, #f472b6);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       position: relative; z-index: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
     }
-    .hero p { color: var(--text2); font-size: 1.05em; margin-top: 8px; position: relative; z-index:1; }
+    .hero p { color: var(--text2); font-size: 1.15em; margin-top: 8px; position: relative; z-index:1; max-width: 600px; margin: 0 auto; }
     .hero .pkg-badge {
       display: inline-block;
       background: var(--surface2);
@@ -82,17 +132,19 @@
     /* ─── Nav Tabs ─── */
     .tabs {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 5px;
-      margin-bottom: 28px;
+      border-radius: 16px;
+      padding: 8px;
+      margin-bottom: 32px;
       overflow-x: auto;
       position: sticky;
-      top: 12px;
+      top: 16px;
       z-index: 100;
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
     .tab-btn {
       flex: 1;
@@ -110,9 +162,10 @@
     }
     .tab-btn:hover { color: var(--text); background: var(--surface2); }
     .tab-btn.active {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #6366f1);
       color: #fff;
       box-shadow: 0 4px 20px var(--accent-glow);
+      transform: translateY(-2px);
     }
     .tab-btn .tab-icon { margin-right: 6px; }
     /* ─── Panels ─── */
@@ -124,8 +177,16 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 20px;
+      padding: 28px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
     }
     .card h2 {
       font-size: 1.15em;
@@ -143,28 +204,34 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 10px 14px;
-      border-radius: 8px;
+      padding: 12px 16px;
+      border-radius: 10px;
       font-family: var(--font);
-      font-size: 0.92em;
+      font-size: 0.95em;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
       min-width: 120px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .input-group input:hover, .input-group select:hover {
+      border-color: var(--border-hover);
+      background: rgba(40, 50, 70, 0.6);
     }
     .input-group input:focus, .input-group select:focus { border-color: var(--accent); }
     .btn {
-      padding: 10px 22px;
-      background: var(--accent);
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
       color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-family: var(--font);
-      font-size: 0.9em;
+      font-size: 0.95em;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px var(--accent-glow);
     }
-    .btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+    .btn:hover { background: linear-gradient(135deg, var(--accent2), #818cf8); transform: translateY(-1px); box-shadow: 0 6px 16px var(--accent-glow); }
     .btn-sm { padding: 8px 16px; font-size: 0.82em; }
     .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent2); }
     .btn-outline:hover { background: var(--accent); color: #fff; }
@@ -204,21 +271,28 @@
     .cal-cell {
       aspect-ratio: 1;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px;
+      border-radius: 12px;
+      padding: 8px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
       overflow: hidden;
       font-size: 0.85em;
+      background: rgba(30, 41, 59, 0.3);
     }
-    .cal-cell:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index:2; }
-    .cal-cell.other { opacity: 0.3; }
-    .cal-cell.today { border-color: var(--green); background: rgba(34,197,94,0.08); }
-    .cal-cell.selected { border-color: var(--accent); background: rgba(99,102,241,0.12); box-shadow: 0 0 20px var(--accent-glow); }
+    .cal-cell:hover { 
+      border-color: var(--accent); 
+      transform: translateY(-4px) scale(1.02); 
+      box-shadow: 0 12px 24px rgba(0,0,0,0.4), 0 0 12px var(--accent-glow); 
+      z-index: 2; 
+      background: rgba(30, 41, 59, 0.8);
+    }
+    .cal-cell.other { opacity: 0.4; }
+    .cal-cell.today { border-color: var(--green); background: rgba(16, 185, 129, 0.1); box-shadow: inset 0 0 0 1px var(--green); }
+    .cal-cell.selected { border-color: var(--accent); background: rgba(139, 92, 246, 0.2); box-shadow: 0 0 20px var(--accent-glow), inset 0 0 0 1px var(--accent); }
     .cal-cell.auspicious { border-left: 3px solid var(--amber); }
     .cal-cell.inauspicious { border-left: 3px solid var(--red); }
     .cal-cell .bs-day { font-weight: 700; font-size: 1.1em; }
@@ -238,8 +312,11 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
-      margin-top: 20px;
+      padding: 28px;
+      margin-top: 24px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     }
     .detail-pane h3 { font-size: 1em; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
     .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88em; }
@@ -283,7 +360,7 @@
       padding: 16px;
       text-align: center;
     }
-    .stat-val { font-size: 1.6em; font-weight: 800; background: linear-gradient(135deg, var(--accent),var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-val { font-size: 1.6em; font-weight: 800; background: linear-gradient(135deg, var(--accent),var(--cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .stat-label { font-size: 0.75em; color: var(--text2); margin-top: 4px; }
     /* ─── Auspicious List ─── */
     .ausp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
@@ -333,7 +410,7 @@
     <div class="hero">
       <h1>📅 Nepali Calendar Engine</h1>
       <p>Interactive explorer for the full API — Conversion, Grid, Panchang, Festivals &amp; more</p>
-      <span class="pkg-badge">@meroevent/nepali-calendar-engine v0.1.0</span>
+      <span class="pkg-badge">nepali-calendar-engine v0.1.0</span>
     </div>
 
     <!-- Tabs -->
@@ -348,6 +425,10 @@
 
     <!-- ═══════ Panel 1: Calendar ═══════ -->
     <div class="panel active" id="panel-calendar">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">📆</span> Calendar Explorer</h2>
+        <p>Explore the full Nepali calendar with interactive grids. View both BS and AD dates side-by-side, enriched with panchang details and festivals. Click on any date to reveal deep insights including tithi, nakshatra, and public holidays.</p>
+      </div>
       <div class="card">
         <div class="cal-nav">
           <button class="btn btn-sm btn-outline" id="calPrev">← Prev</button>
@@ -372,6 +453,10 @@
 
     <!-- ═══════ Panel 2: Converter ═══════ -->
     <div class="panel" id="panel-converter">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">🔄</span> Date Converter & Formatter</h2>
+        <p>Seamlessly convert dates backward and forward between Bikram Sambat (BS) and Anno Domini (AD). Use the powerful formatter tool to generate highly customizable localized date strings for your projects.</p>
+      </div>
       <div class="card">
         <h2>🔄 BS → AD Conversion</h2>
         <div class="input-row">
@@ -409,6 +494,10 @@
 
     <!-- ═══════ Panel 3: Panchang ═══════ -->
     <div class="panel" id="panel-panchang">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">🌙</span> Vedic Astrology & Panchang</h2>
+        <p>Deep dive into Vedic astrology data. Lookup precise daily panchang information including tithi timings, pakshas, and nakshatras, or generate a comprehensive panchang data table for the entire month.</p>
+      </div>
       <div class="card">
         <h2>🌙 Panchang Lookup</h2>
         <div class="input-row">
@@ -432,6 +521,10 @@
 
     <!-- ═══════ Panel 4: Events / Festivals ═══════ -->
     <div class="panel" id="panel-events">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">🎉</span> Festivals & Events</h2>
+        <p>Stay updated on all cultural, religious, and national events. Search for specific dates or browse the entire month's calendar to discover all upcoming festivals and public holidays in Nepal.</p>
+      </div>
       <div class="card">
         <h2>🎉 Events for Month</h2>
         <div class="input-row">
@@ -462,6 +555,10 @@
 
     <!-- ═══════ Panel 5: Auspicious ═══════ -->
     <div class="panel" id="panel-auspicious">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">✨</span> Auspicious Dates Finder</h2>
+        <p>Find the most promising days for major life events. Check if a specific date is auspicious for weddings, bratabandhas, or other activities, or list all favorable dates and muhurats in a given month.</p>
+      </div>
       <div class="card">
         <h2>✨ Auspicious Dates in Month</h2>
         <div class="input-row">
@@ -503,6 +600,10 @@
 
     <!-- ═══════ Panel 6: Raw API ═══════ -->
     <div class="panel" id="panel-api">
+      <div class="panel-header">
+        <h2><span style="font-size:1.2em">📦</span> Raw API Access</h2>
+        <p>Designed for developers: Test the underlying engine directly. Fetch raw JSON outputs from the core library functions to see exactly what data structures, objects, and types the package returns.</p>
+      </div>
       <div class="card">
         <h2>📦 Raw getMonthCalendar() Output</h2>
         <div class="input-row">
@@ -531,7 +632,7 @@
       getPanchang, ensurePanchangYear, preloadAllPanchang,
       getEventsForDate, getEventsForMonth, getAuspiciousDates,
       isAuspicious, nextMonth, prevMonth
-    } from './dist/index.js';
+    } from '../dist/index.js';
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
     const $ = id => document.getElementById(id);

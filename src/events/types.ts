@@ -1,5 +1,13 @@
 export type AuspiciousClassification = 'auspicious' | 'inauspicious' | 'neutral'
 
+export type EventOrigin = 'base_festival' | 'government_holiday' | 'runtime_injected'
+
+export interface EventProvenance {
+  origin: EventOrigin
+  sourceKind: 'rule_based' | 'government_declared' | 'runtime_injected'
+  reference: string
+}
+
 export type EventType =
   | 'festival'
   | 'public_holiday'
@@ -22,6 +30,7 @@ export interface CalendarEvent {
   category?: EventCategory
   description?: { en: string; ne: string }
   isPublicHoliday: boolean
+  provenance?: EventProvenance
 }
 
 export interface AuspiciousDay {

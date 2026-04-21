@@ -1,9 +1,8 @@
 # Nepali Calendar Engine — Package Plan
 
-**Package Name:** `@meroevent/nepali-calendar-engine`  
+**Package Name:** `nepali-calendar-engine`  
 **Version:** 0.1.0 (Initial Development)  
 **Date:** March 22, 2026  
-**Author:** Prince Bhagat (Dexter) — Project Lead  
 **Organization:** Digital Events Pvt Ltd  
 **Classification:** Internal — Development Reference
 
@@ -19,9 +18,9 @@ The package exists because no off-the-shelf calendar library understands the Nep
 
 ### 1.1 Why a Package and Not Part of the Main App?
 
-The calendar logic is a self-contained domain with no dependency on bookings, users, venues, or any MeroEvent business logic. Extracting it into a standalone package provides three concrete advantages:
+The calendar logic is a self-contained domain with no dependency on bookings, users, venues, or any Application business logic. Extracting it into a standalone package provides three concrete advantages:
 
-- **Reusability:** The same package serves the MeroEvent web app (Next.js), the mobile app (React Native), the NestJS backend (for server-side date operations), and potentially VenueOS in the future — all from a single source of truth.
+- **Reusability:** The same package serves the Application web app (Next.js), the mobile app (React Native), the NestJS backend (for server-side date operations), and potentially VenueOS in the future — all from a single source of truth.
 - **Independent Versioning:** Calendar data (new year's tithi data, festival updates) can be released without touching the main application codebase.
 - **Testability:** Date logic is notoriously bug-prone. An isolated package with focused test suites catches conversion edge cases before they reach the application layer.
 
@@ -43,22 +42,22 @@ These boundaries are intentional and must not creep during development:
 
 - **No UI components.** No calendar grid, no date picker, no modals. The package outputs structured data; the consuming application renders it however it needs to.
 - **No database access.** The package ships with static JSON datasets and provides a runtime injection API for external data. It never connects to PostgreSQL, Redis, or any data store.
-- **No API endpoints.** No HTTP server, no REST routes, no GraphQL schema. The MeroEvent NestJS backend wraps the package's functions in its own API layer.
+- **No API endpoints.** No HTTP server, no REST routes, no GraphQL schema. The Application NestJS backend wraps the package's functions in its own API layer.
 - **No booking or business logic.** Availability, pricing, hall management, user roles — none of this belongs here.
 - **No real-time features.** No WebSocket connections, no event emitters, no polling. The package is a pure computation and data lookup library.
-- **No admin CRUD.** The MeroEvent admin panel manages custom festivals and events through its own database; those entries are passed into the package via the runtime injection API.
+- **No admin CRUD.** The Application admin panel manages custom festivals and events through its own database; those entries are passed into the package via the runtime injection API.
 
 ---
 
 ## 2. Who Consumes This Package?
 
-The package has four immediate consumers within the MeroEvent ecosystem:
+The package has four immediate consumers within the Application ecosystem:
 
 | Consumer | Runtime | Usage |
 |---|---|---|
-| **MeroEvent Web (Next.js)** | Browser + Server | Calendar component data, date pickers, auspicious date display, search filters ("show venues available on auspicious dates in Falgun 2083") |
-| **MeroEvent Backend (NestJS)** | Node.js Server | Server-side date validation, booking date enrichment, calendar API endpoints (`/calendar/month-summary`, `/calendar/day-detail`), report generation with BS dates |
-| **MeroEvent Mobile (React Native)** | Mobile JS Runtime | Same as web — calendar views, date selection, festival notifications |
+| **Application Web (Next.js)** | Browser + Server | Calendar component data, date pickers, auspicious date display, search filters ("show venues available on auspicious dates in Falgun 2083") |
+| **Application Backend (NestJS)** | Node.js Server | Server-side date validation, booking date enrichment, calendar API endpoints (`/calendar/month-summary`, `/calendar/day-detail`), report generation with BS dates |
+| **Application Mobile (React Native)** | Mobile JS Runtime | Same as web — calendar views, date selection, festival notifications |
 | **VenueOS (Future)** | Go Backend (via thin wrapper or API) | BS date display on venue websites, auspicious date badges. Can consume via a NestJS API endpoint initially; a Go port of the core converter is a future option if direct integration is needed |
 
 ---
@@ -95,7 +94,7 @@ Tithi (the lunar day) is astronomically calculated based on the angular distance
 
 **Chosen Strategy: Pre-computed dataset.** For an event management platform, we need deterministic results (two users looking at the same date must see the same tithi), and we don't need sub-second astronomical precision. Pre-computed data from reliable sources (Drik Panchang, Nepal Rashtriya Panchang, or established Nepali Patro publishers) gives us exactly what we need.
 
-**Initial Coverage:** BS 2082–2087 (approximately AD 2025–2030). This covers the immediate operational window for MeroEvent V2 and its first 4–5 years of production use.
+**Initial Coverage:** BS 2082–2087 (approximately AD 2025–2030). This covers the immediate operational window for Application V2 and its first 4–5 years of production use.
 
 **Data Shape per Day:**
 ```json
@@ -134,7 +133,7 @@ Nepal has approximately 50+ recognized festivals, 20+ government public holidays
 
 - **Rule-based festivals** (fixed BS dates): Encoded directly in the package as logic. Dashain will always be computed from Ashwin Shukla Pratipada. No annual update needed.
 - **Tithi-dependent festivals**: Resolved at runtime by querying the panchang layer. "Find the date where tithi = Chaturdashi in Magh Krishna Paksha" → that's Shivaratri. No annual update needed as long as tithi data exists.
-- **Government holidays and Muhurat dates**: Shipped as static JSON data per fiscal year. Updated annually. Additionally, the `registerEvents()` API allows MeroEvent's admin panel to inject custom entries at runtime — this covers any events the base dataset misses.
+- **Government holidays and Muhurat dates**: Shipped as static JSON data per fiscal year. Updated annually. Additionally, the `registerEvents()` API allows Application's admin panel to inject custom entries at runtime — this covers any events the base dataset misses.
 
 **Initial Base Dataset Coverage:** BS 2082–2084 (3 fiscal years). Approximately 70–80 entries per year covering all major festivals, public holidays, and known auspicious date categories.
 
@@ -148,14 +147,14 @@ Nepal has approximately 50+ recognized festivals, 20+ government public holidays
 |---|---|---|
 | Language | TypeScript | All immediate consumers (Next.js, NestJS, React Native) are in the JS/TS ecosystem. Native import, zero overhead, shared types. |
 | Build Target | ESM + CJS dual output | ESM for modern bundlers (Next.js, Vite), CJS for NestJS and older tooling. Use `tsup` for the dual build. |
-| Package Manager | pnpm | Consistent with MeroEvent V2 project standards. |
+| Package Manager | pnpm | Consistent with Application V2 project standards. |
 | Testing | Vitest | Fast, TypeScript-native, compatible with the project ecosystem. |
 | Data Format | JSON (embedded in package) | Static datasets ship as JSON files imported at build time. No runtime file I/O needed. |
 
 ### 4.2 Directory Structure
 
 ```
-@meroevent/nepali-calendar-engine/
+nepali-calendar-engine/
 ├── src/
 │   ├── converter/                  # Layer 1: BS ↔ AD conversion
 │   │   ├── bs-to-ad.ts
@@ -444,17 +443,17 @@ This is the labor-intensive phase. The team must:
 - `tsup` build producing ESM + CJS outputs with type declarations
 - Package size audit (target: under 500 KB including all datasets)
 - Performance benchmark: `getMonthCalendar()` with full enrichment must complete in under 10ms
-- npm publish as `@meroevent/nepali-calendar-engine` (scoped, private or public per team decision)
+- npm publish as `nepali-calendar-engine` (scoped, private or public per team decision)
 
 ---
 
-## 6. How This Package Integrates with MeroEvent V2
+## 6. How This Package Integrates with Application V2
 
-The package provides raw calendar intelligence. MeroEvent V2's application layer handles everything else. Here is how the two connect:
+The package provides raw calendar intelligence. Application V2's application layer handles everything else. Here is how the two connect:
 
 ### 6.1 Frontend (Next.js) — Calendar Component
 
-The MeroEvent calendar UI component calls `getMonthCalendar()` and maps the returned `CalendarDay[]` array to its visual grid. Each day cell renders:
+The Application calendar UI component calls `getMonthCalendar()` and maps the returned `CalendarDay[]` array to its visual grid. Each day cell renders:
 - BS date (primary) and AD date (secondary) from the `CalendarDay` object
 - Tithi badge from `panchang.tithi.nameNe`
 - Festival/holiday indicators from the `events` array
@@ -497,7 +496,7 @@ Every BS new year (around mid-April AD), the following maintenance tasks must be
 2. **Update public holidays** from the government's published holiday list for the new fiscal year.
 3. **Review auspicious date categories** — confirm Shubha Vivah Muhurat dates and other event-relevant dates for the new year.
 4. **Publish a new package version** with the updated data files.
-5. **Update MeroEvent's admin-curated events** in the database if any custom entries need adjustment.
+5. **Update Application's admin-curated events** in the database if any custom entries need adjustment.
 
 This is a recurring process, not a one-time task. It should be added to the team's annual planning calendar around Chaitra (March–April).
 
@@ -527,4 +526,4 @@ The package is considered production-ready when:
 
 ---
 
-*This document is maintained by the MeroEvent V2 development team. It will be updated as implementation progresses and decisions are refined.*
+*This document is maintained by the Application V2 development team. It will be updated as implementation progresses and decisions are refined.*

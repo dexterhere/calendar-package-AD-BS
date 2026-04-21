@@ -15,9 +15,9 @@ export const BS_MONTHS: Array<{ en: string; ne: string; romanized: string }> = [
 ]
 
 export function getMonthName(month: number): { en: string; ne: string; romanized: string } {
-  if (month < 1 || month > 12) {
+  const m = BS_MONTHS[month - 1]
+  if (m === undefined) {
     throw new RangeError(`Invalid BS month: ${month}. Must be 1–12.`)
   }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return BS_MONTHS[month - 1]!
+  return m
 }

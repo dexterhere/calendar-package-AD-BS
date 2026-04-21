@@ -1,8 +1,6 @@
 /**
  * Tithi Data Accuracy Tests
  * Validates tithi, paksha, Purnima, and Amavasya data against verified reference
- *
- * Developed and Led by: Prince Bhagat — Call sign "Buggy Buck" 🦌
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { getPanchang, ensurePanchangYear } from '../../src/panchang/panchang-lookup.js'

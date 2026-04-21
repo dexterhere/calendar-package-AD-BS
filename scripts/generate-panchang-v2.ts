@@ -41,7 +41,11 @@ import fs   from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { computePanchang, computeTithiType } from '../src/astro/compute.js'
+import {
+  computePanchang,
+  computeTithiType,
+  type PanchangComputed,
+} from '../src/astro/compute.js'
 import { bsToAd }                            from '../src/converter/bs-to-ad.js'
 import {
   getMonthDayCount,
@@ -100,10 +104,25 @@ function getFirstDayOfYear(bsYear: number): Date {
   return bsToAd({ year: bsYear, month: 1, day: 1 })
 }
 
-// ── Tithi computation (cached) ────────────────────────────────────────────────
+// ── Panchang computation (cached) ─────────────────────────────────────────────
+
+type PanchangSnapshot = Pick<PanchangComputed, 'tithi' | 'nakshatra' | 'yoga' | 'karana'>
+
+const panchangCacheByDate = new Map<number, PanchangSnapshot>()
+
+function getPanchangForDate(adDate: Date): PanchangSnapshot {
+  const dateKey = adDate.getTime()
+  const cached = panchangCacheByDate.get(dateKey)
+  if (cached) return cached
+
+  const { tithi, nakshatra, yoga, karana } = computePanchang({ adDate })
+  const snapshot: PanchangSnapshot = { tithi, nakshatra, yoga, karana }
+  panchangCacheByDate.set(dateKey, snapshot)
+  return snapshot
+}
 
 function getTithiForDate(adDate: Date): number {
-  return computePanchang({ adDate }).tithi
+  return getPanchangForDate(adDate).tithi
 }
 
 // ── Year generation ───────────────────────────────────────────────────────────
@@ -111,8 +130,8 @@ function getTithiForDate(adDate: Date): number {
 function generateYear(bsYear: number): OutputEntry[] {
   const days = getAllDaysInYear(bsYear)
 
-  // Compute all tithis in one pass (full computePanchang for each day)
-  const results = days.map(day => computePanchang({ adDate: day.adDate }))
+  // Compute all daily panchang snapshots in one pass (with cross-year cache reuse)
+  const results = days.map(day => getPanchangForDate(day.adDate))
 
   // Boundary tithis for Kshaya/Vriddhi detection on first and last day
   const prevYearTithi = bsYear > BS_DATA_YEAR_MIN

@@ -19,19 +19,32 @@ import data2087 from './2087.json' assert { type: 'json' }
 import data2088 from './2088.json' assert { type: 'json' }
 import data2089 from './2089.json' assert { type: 'json' }
 import data2090 from './2090.json' assert { type: 'json' }
+import type { PanchangEntry } from './schema.js'
 
-export const PANCHANG_DATA: Record<number, typeof data2082> = {
-  2080: data2080,
-  2081: data2081,
-  2082: data2082,
-  2083: data2083,
-  2084: data2084,
-  2085: data2085,
-  2086: data2086,
-  2087: data2087,
-  2088: data2088,
-  2089: data2089,
-  2090: data2090,
+const typed2080 = data2080 as PanchangEntry[]
+const typed2081 = data2081 as PanchangEntry[]
+const typed2082 = data2082 as PanchangEntry[]
+const typed2083 = data2083 as PanchangEntry[]
+const typed2084 = data2084 as PanchangEntry[]
+const typed2085 = data2085 as PanchangEntry[]
+const typed2086 = data2086 as PanchangEntry[]
+const typed2087 = data2087 as PanchangEntry[]
+const typed2088 = data2088 as PanchangEntry[]
+const typed2089 = data2089 as PanchangEntry[]
+const typed2090 = data2090 as PanchangEntry[]
+
+export const PANCHANG_DATA: Record<number, PanchangEntry[]> = {
+  2080: typed2080,
+  2081: typed2081,
+  2082: typed2082,
+  2083: typed2083,
+  2084: typed2084,
+  2085: typed2085,
+  2086: typed2086,
+  2087: typed2087,
+  2088: typed2088,
+  2089: typed2089,
+  2090: typed2090,
 }
 
 export type { PanchangEntry } from './schema.js'

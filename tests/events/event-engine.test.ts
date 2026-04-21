@@ -16,6 +16,8 @@ describe('Phase 4: Event Engine', () => {
       expect(magheSankranti).toBeDefined()
       expect(magheSankranti!.name.en).toBe('Maghe Sankranti')
       expect(magheSankranti!.isPublicHoliday).toBe(true)
+      expect(magheSankranti!.provenance?.origin).toBe('base_festival')
+      expect(magheSankranti!.provenance?.sourceKind).toBe('rule_based')
     })
 
     it('returns Republic Day for Jestha 15', () => {
@@ -48,6 +50,14 @@ describe('Phase 4: Event Engine', () => {
       const events = getEventsForDate({ year: 2082, month: 1, day: 18 })
       const labourDay = events.find(e => e.id === 'may-day')
       expect(labourDay).toBeDefined()
+    })
+
+    it('returns Loktantra Day for Baishakh 11', () => {
+      const events = getEventsForDate({ year: 2082, month: 1, day: 11 })
+      const loktantraDay = events.find(e => e.id === 'loktantra-day')
+      expect(loktantraDay).toBeDefined()
+      expect(loktantraDay!.category).toBe('national')
+      expect(loktantraDay!.isPublicHoliday).toBe(false)
     })
   })
 
@@ -309,6 +319,109 @@ describe('Phase 4: Event Engine', () => {
       if (laxmiPuja) {
         expect(laxmiPuja.isPublicHoliday).toBe(true)
       }
+    })
+
+    it('attaches government provenance to annual holiday records', () => {
+      const events = getEventsForDate({ year: 2082, month: 1, day: 1 })
+      const annualNewYear = events.find(e => e.id === '2082-new-year')
+      expect(annualNewYear).toBeDefined()
+      expect(annualNewYear!.provenance?.origin).toBe('government_holiday')
+      expect(annualNewYear!.provenance?.sourceKind).toBe('government_declared')
+      expect(annualNewYear!.provenance?.reference).toContain('PUBLIC_HOLIDAYS_2082:2082-new-year')
+    })
+  })
+
+  describe('International observances (fixed AD date)', () => {
+    it('returns World Braille Day on AD 2026-01-04', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 0, 4)))
+      const event = events.find(e => e.id === 'world-braille-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns International Day of Education on AD 2026-01-24', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 0, 24)))
+      const event = events.find(e => e.id === 'international-day-of-education')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it("returns Valentine's Day on AD 2026-02-14", () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 1, 14)))
+      const valentines = events.find(e => e.id === 'valentines-day')
+      expect(valentines).toBeDefined()
+      expect(valentines!.isPublicHoliday).toBe(false)
+      expect(valentines!.type).toBe('festival')
+    })
+
+    it('returns International Mother Language Day on AD 2026-02-21', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 1, 21)))
+      const event = events.find(e => e.id === 'international-mother-language-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns International Day of Happiness on AD 2026-03-20', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 2, 20)))
+      const event = events.find(e => e.id === 'international-day-of-happiness')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns International Day of Sport for Development and Peace on AD 2026-04-06', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 3, 6)))
+      const sportsDay = events.find(e => e.id === 'international-day-of-sport-for-development-and-peace')
+      expect(sportsDay).toBeDefined()
+      expect(sportsDay!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns World Health Day on AD 2026-04-07', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 3, 7)))
+      const worldHealth = events.find(e => e.id === 'world-health-day')
+      expect(worldHealth).toBeDefined()
+      expect(worldHealth!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns World Refugee Day on AD 2026-06-20', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 5, 20)))
+      const event = events.find(e => e.id === 'world-refugee-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns International Youth Day on AD 2026-08-12', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 7, 12)))
+      const event = events.find(e => e.id === 'international-youth-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns World Ozone Day on AD 2026-09-16', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 8, 16)))
+      const event = events.find(e => e.id === 'world-ozone-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns World Toilet Day on AD 2026-11-19', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 10, 19)))
+      const event = events.find(e => e.id === 'world-toilet-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns World AIDS Day on AD 2026-12-01', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 11, 1)))
+      const event = events.find(e => e.id === 'world-aids-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
+    })
+
+    it('returns International Human Solidarity Day on AD 2026-12-20', () => {
+      const events = getEventsForDate(new Date(Date.UTC(2026, 11, 20)))
+      const event = events.find(e => e.id === 'international-human-solidarity-day')
+      expect(event).toBeDefined()
+      expect(event!.isPublicHoliday).toBe(false)
     })
   })
 })

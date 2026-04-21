@@ -10,9 +10,9 @@ export const WEEKDAYS: Array<{ en: string; ne: string }> = [
 ]
 
 export function getWeekdayName(dayOfWeek: number): { en: string; ne: string } {
-  if (dayOfWeek < 0 || dayOfWeek > 6) {
+  const w = WEEKDAYS[dayOfWeek]
+  if (w === undefined) {
     throw new RangeError(`Invalid day of week: ${dayOfWeek}. Must be 0–6.`)
   }
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  return WEEKDAYS[dayOfWeek]!
+  return w
 }

@@ -26,8 +26,13 @@ import type {
   Body as BodyType,
 } from 'astronomy-engine'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mod: Record<string, unknown> = (NS as any).default ?? NS
+const maybeDefault = Reflect.get(NS, 'default')
+const mod: Record<string, unknown> = (
+  typeof maybeDefault === 'object' &&
+  maybeDefault !== null
+)
+  ? (maybeDefault as Record<string, unknown>)
+  : (NS as Record<string, unknown>)
 
 export const Observer     = mod['Observer']     as typeof ObserverType
 export const SearchRiseSet = mod['SearchRiseSet'] as typeof SearchRiseSetType

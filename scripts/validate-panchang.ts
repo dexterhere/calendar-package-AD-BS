@@ -22,9 +22,22 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  buildUnifiedReport,
+  writeJsonArtifact,
+  type ValidationCheckResult,
+} from './validation/report-contract.js'
 
 // ── Types ────────────────────────────────────────────────────────────────────
-interface PanchangEntry { m: number; d: number; t: number; n: number }
+interface PanchangEntry {
+  m: number
+  d: number
+  t: number
+  n?: number
+  y?: number
+  k?: number
+  tt?: 'k' | 'v'
+}
 
 interface ReferenceDate {
   bsYear:  number
@@ -119,6 +132,9 @@ const REFERENCE_DATES: ReferenceDate[] = [
 // ── Load generated panchang file for a given year ───────────────────────────
 const ROOT = path.resolve(fileURLToPath(import.meta.url), '../..')
 const PANCHANG_DIR = path.join(ROOT, 'src/data/panchang')
+const VALIDATION_REPORT_DIR = path.join(ROOT, 'validation', 'reports')
+const MACHINE_REPORT_RELATIVE_PATH = path.join('validation', 'reports', 'validate-panchang-report.json')
+const MACHINE_REPORT_PATH = path.join(VALIDATION_REPORT_DIR, 'validate-panchang-report.json')
 
 function loadYear(year: number): Map<number, PanchangEntry> | null {
   const filePath = path.join(PANCHANG_DIR, `${year}.json`)
@@ -131,12 +147,17 @@ function loadYear(year: number): Map<number, PanchangEntry> | null {
   return map
 }
 
+function bsDateString(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
 // ── Run validation ───────────────────────────────────────────────────────────
 console.log('\nValidating panchang data against reference dates...\n')
 
 let passed = 0
 let failed = 0
 const reportLines: string[] = []
+const checks: ValidationCheckResult[] = []
 
 // Cache loaded years to avoid re-reading files
 const yearCache = new Map<number, Map<number, PanchangEntry> | null>()
@@ -148,18 +169,48 @@ for (const ref of REFERENCE_DATES) {
   const index = yearCache.get(ref.bsYear)
 
   if (index === null || index === undefined) {
-    const line = `[SKIP] ${ref.bsYear}-${String(ref.bsMonth).padStart(2,'0')}-${String(ref.bsDay).padStart(2,'0')}  file not found — run generate:panchang first`
+    const dateStr = bsDateString(ref.bsYear, ref.bsMonth, ref.bsDay)
+    const line = `[SKIP] ${dateStr}  file not found — run generate:panchang first`
     console.log(line)
     reportLines.push(line)
+    checks.push({
+      id: `${dateStr}-reference-check`,
+      category: 'reference-date',
+      label: ref.label,
+      status: 'fail',
+      expected: 'Generated panchang year file and reference entry exist',
+      actual: 'Panchang year file missing',
+      details: ref.source,
+      metadata: {
+        bsDate: dateStr,
+        expectedTithi: ref.tithi,
+        expectedNakshatra: ref.nakshatra ?? null,
+      },
+    })
     failed++
     continue
   }
 
   const entry = index.get(ref.bsMonth * 100 + ref.bsDay)
   if (entry === undefined) {
-    const line = `[FAIL] ${ref.bsYear}-${String(ref.bsMonth).padStart(2,'0')}-${String(ref.bsDay).padStart(2,'0')}  entry missing in JSON`
+    const dateStr = bsDateString(ref.bsYear, ref.bsMonth, ref.bsDay)
+    const line = `[FAIL] ${dateStr}  entry missing in JSON`
     console.log(line)
     reportLines.push(line)
+    checks.push({
+      id: `${dateStr}-reference-check`,
+      category: 'reference-date',
+      label: ref.label,
+      status: 'fail',
+      expected: 'Reference date entry exists in generated panchang JSON',
+      actual: 'Entry missing in generated panchang JSON',
+      details: ref.source,
+      metadata: {
+        bsDate: dateStr,
+        expectedTithi: ref.tithi,
+        expectedNakshatra: ref.nakshatra ?? null,
+      },
+    })
     failed++
     continue
   }
@@ -179,11 +230,31 @@ for (const ref of REFERENCE_DATES) {
 
   const ok = tithiOk && nakshatraOk
   const status = ok ? '[PASS]' : '[FAIL]'
-  const dateStr = `${ref.bsYear}-${String(ref.bsMonth).padStart(2,'0')}-${String(ref.bsDay).padStart(2,'0')}`
+  const dateStr = bsDateString(ref.bsYear, ref.bsMonth, ref.bsDay)
   const line = `${status} ${dateStr}  ${tithiStr}  ${nakshatraStr}  — ${ref.label}`
 
   console.log(line)
   reportLines.push(line)
+  checks.push({
+    id: `${dateStr}-reference-check`,
+    category: 'reference-date',
+    label: ref.label,
+    status: ok ? 'pass' : 'fail',
+    expected: ref.nakshatra === undefined
+      ? `tithi=${ref.tithi}`
+      : `tithi=${ref.tithi}, nakshatra=${ref.nakshatra}`,
+    actual: ref.nakshatra === undefined
+      ? `tithi=${entry.t}`
+      : `tithi=${entry.t}, nakshatra=${entry.n ?? 'missing'}`,
+    details: ref.source,
+    metadata: {
+      bsDate: dateStr,
+      expectedTithi: ref.tithi,
+      actualTithi: entry.t,
+      expectedNakshatra: ref.nakshatra ?? null,
+      actualNakshatra: entry.n ?? null,
+    },
+  })
 
   if (ok) passed++
   else failed++
@@ -193,11 +264,12 @@ for (const ref of REFERENCE_DATES) {
 const summary = `\nSummary: ${passed} passed, ${failed} failed out of ${REFERENCE_DATES.length} reference dates`
 console.log(summary)
 reportLines.push(summary)
+const generatedAt = new Date().toISOString()
 
 // ── Write report file ────────────────────────────────────────────────────────
 const reportPath = path.join(ROOT, 'validation-report.txt')
 const reportContent = [
-  `Panchang Validation Report — ${new Date().toISOString()}`,
+  `Panchang Validation Report — ${generatedAt}`,
   '='.repeat(60),
   '',
   ...reportLines,
@@ -205,6 +277,22 @@ const reportContent = [
 ]
 fs.writeFileSync(reportPath, reportContent.join('\n'), 'utf8')
 console.log(`\nReport written to: ${reportPath}`)
+
+const machineReport = buildUnifiedReport({
+  source: 'validate-panchang',
+  script: 'scripts/validate-panchang.ts',
+  command: 'pnpm run validate:panchang',
+  generatedAt,
+  artifactPath: MACHINE_REPORT_RELATIVE_PATH,
+  checks,
+  metadata: {
+    referenceCount: REFERENCE_DATES.length,
+    textReportPath: 'validation-report.txt',
+  },
+})
+
+writeJsonArtifact(MACHINE_REPORT_PATH, machineReport)
+console.log(`Machine report written to: ${MACHINE_REPORT_PATH}`)
 
 if (failed > 0) {
   console.error('\n✗ Validation failed — do not commit panchang data until all references pass.')
