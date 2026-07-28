@@ -4,18 +4,21 @@
 [![npm downloads](https://img.shields.io/npm/dm/nepali-calendar-engine)](https://www.npmjs.com/package/nepali-calendar-engine)
 [![license](https://img.shields.io/npm/l/nepali-calendar-engine)](./LICENSE)
 
-`nepali-calendar-engine` is a TypeScript package for Bikram Sambat (BS) calendar operations, including BS/AD conversion, calendar grid generation, panchang lookup, and festival/holiday classification.
+`nepali-calendar-engine` is a TypeScript package for Bikram Sambat (BS) calendar operations, including BS/AD conversion, calendar grid generation, panchang lookup, festival/holiday classification, BS date math, Nepal working day calculations, Devanagari string parsing, and iCalendar (.ics) exports.
 
 ## Quick Glance
 
 - BS ↔ AD date conversion
 - Monthly calendar grid generation
+- BS date arithmetic (`addDays`, `subtractDays`, `addMonths`, `addYears`, `diffInDays`, `isBetween`)
+- Nepal business & working days engine (`isWorkingDay`, `addWorkingDays`, `getWorkingDaysCount`)
+- Devanagari string parsing (`parseBS`) and token-based formatting (`formatBS` with Devanagari digits)
+- iCalendar (.ics) exporter (`exportMonthToICS`, `exportToICS`)
 - Panchang data (tithi, paksha, nakshatra, yoga, karana, tithiType)
 - Location-aware panchang for any observer coordinates (Kathmandu default)
 - Kshaya (skipped) and Vriddhi (repeated) tithi detection
 - Festival and public holiday resolution
 - International observances (fixed AD dates, e.g. World Health Day, Valentine's Day)
-- Year-round international observances across all months (curated fixed AD dates, non-exhaustive)
 - Auspicious/inauspicious date classification
 - English and Nepali labels
 
@@ -45,7 +48,17 @@ console.log(bs, ad.getUTCFullYear(), ad.getUTCMonth(), ad.getUTCDate())
 ## Quick Start
 
 ```ts
-import { toBS, toAD, getMonthCalendar, getPanchang, getEventsForDate } from 'nepali-calendar-engine'
+import {
+  toBS,
+  toAD,
+  getMonthCalendar,
+  getPanchang,
+  getEventsForDate,
+  addDays,
+  isWorkingDay,
+  parseBS,
+  exportMonthToICS,
+} from 'nepali-calendar-engine'
 
 const bsDate = toBS(new Date(2025, 3, 14))
 const adDate = toAD({ year: 2082, month: 1, day: 1 })
@@ -53,7 +66,73 @@ const adDate = toAD({ year: 2082, month: 1, day: 1 })
 const month = await getMonthCalendar(2082, 1)
 const events = getEventsForDate({ year: 2082, month: 7, day: 15 })
 
-console.log({ bsDate, adDate, days: month.days.length, events: events.length })
+// Date Math & Working Days
+const nextWeek = addDays({ year: 2082, month: 1, day: 1 }, 7)
+const isWorkDay = isWorkingDay({ year: 2082, month: 1, day: 2 })
+
+// Devanagari Parsing
+const parsed = parseBS('२०८२-०१-०१')
+
+// Export month events to iCalendar (.ics)
+const icsData = exportMonthToICS(2082, 1)
+
+console.log({ bsDate, adDate, days: month.days.length, events: events.length, parsed })
+```
+
+## BS Date Math & Nepal Working Days
+
+```ts
+import {
+  addDays,
+  subtractDays,
+  diffInDays,
+  isWorkingDay,
+  addWorkingDays,
+  getWorkingDaysCount,
+} from 'nepali-calendar-engine'
+
+const start = { year: 2082, month: 1, day: 2 }
+
+// Add / Subtract Days
+const futureDate = addDays(start, 10)
+const pastDate = subtractDays(start, 5)
+const totalDays = diffInDays(start, futureDate) // 10
+
+// Nepal Working Days (defaults to Saturday weekend + Nepal public holidays off)
+const canWork = isWorkingDay(start) // true
+const deadline = addWorkingDays(start, 5) // Skips Saturdays and holidays
+const workingCount = getWorkingDaysCount(start, futureDate)
+```
+
+## Date Formatting & Devanagari Parsing
+
+```ts
+import { formatBS, parseBS } from 'nepali-calendar-engine'
+
+// Parse ASCII or Devanagari strings
+const bs1 = parseBS('2082-01-01')
+const bs2 = parseBS('२०८२-०१-०१') // Devanagari input
+
+// Rich token formatting with Devanagari locale
+const formattedEn = formatBS(bs1, 'dddd, MMMM D, YYYY') // "Monday, Baishakh 1, 2082"
+const formattedNe = formatBS(bs1, 'dddd, MMMM D, YYYY', { locale: 'ne' }) // "सोमबार, बैशाख १, २०८२"
+```
+
+## iCalendar (.ics) Export
+
+```ts
+import { exportMonthToICS, exportToICS } from 'nepali-calendar-engine'
+
+// Export full month of events to .ics format string (compatible with Google/Apple Calendar)
+const monthICS = exportMonthToICS(2082, 1)
+
+// Or export specific custom event pairs
+const customICS = exportToICS([
+  {
+    event: { id: 'evt-1', name: { en: 'Meeting', ne: 'बैठक' }, type: 'custom', isPublicHoliday: false },
+    bsDate: { year: 2082, month: 1, day: 5 },
+  },
+])
 ```
 
 ### International observance metadata APIs
@@ -181,35 +260,6 @@ pnpm trust:refresh-manifest
 pnpm maintenance:monthly
 ```
 
-## Trust model and safe validation
-
-- Default local/CI validation is deterministic and offline-first (`typecheck`, `test`, `validate:panchang`, `deps:check`, `trust:check`).
-- `validate:cross` should use `--no-horizons` in routine runs to avoid external network APIs; only enable Horizons for explicit deep investigations.
-- Generated panchang data now has an integrity manifest (`src/data/panchang/integrity-manifest.json`) with canonical SHA-256 hashes and per-year day counts.
-- Integrity checks are trust signals (tamper/reproducibility detection), not astronomical correctness proofs. Keep `validate:panchang` and curated reference review in the workflow.
-- Public holiday and festival datasets now require explicit source mappings checked by `legal:check`; this enforces traceability and release hygiene.
-
-## Legal and compliance guardrails
-
-- This package is open-source under the MIT License (`LICENSE` at repository root).
-- Validation scripts enforce metadata and provenance completeness; they do **not** replace legal advice.
-- Nepal public holiday declarations can change annually. Government gazette and ministry notices remain authoritative.
-- Third-party calendars (Hamro Patro, Drik Panchang, etc.) are treated as **manual spot-check references** only; no automated scraping pipeline is used for them.
-- Store only minimum factual assertions required for verification (date/tithi mappings), not copied proprietary editorial content.
-- International observances are a curated informational dataset (non-public-holiday), not a legal/compliance registry of all global observances.
-- For release candidates, run:
-
-```bash
-pnpm typecheck
-pnpm test
-pnpm validate:panchang
-pnpm legal:check
-pnpm deps:check
-pnpm trust:check
-pnpm audit --prod
-pnpm validate:cross -- --year 2082 --no-horizons
-```
-
 ## Documentation
 
 All detailed docs are under [`docs/`](./docs/):
@@ -220,39 +270,3 @@ All detailed docs are under [`docs/`](./docs/):
 - [`docs/TESTING-GUIDE.md`](./docs/TESTING-GUIDE.md) - testing guide
 - [`docs/CREDITS.md`](./docs/CREDITS.md) - credits and sources
 - [`docs/project.md`](./docs/project.md) - original project plan/reference
-
-For local docs site development and build:
-
-```bash
-# Starts web server and prints URL
-pnpm run docs:dev
-
-# Builds static docs output
-pnpm run docs:build
-
-# Serves built docs and prints URL
-pnpm run docs:preview
-```
-
-API reference pages are generated from TypeScript exports via TypeDoc:
-
-```bash
-pnpm run docs:api
-```
-
-An interactive browser playground is available in the docs site at `/playground/` (source: `docs/public/playground/index.html`).
-
-### Website, docs, and playground
-
-- Landing page + docs are served by VitePress.
-- Playground is part of the website and accessible from the docs UI.
-
-- The playground imports the built package bundle from `/dist/index.js`.
-- Docs commands automatically sync these assets into `docs/public/dist/` so `/playground/` resolves correctly in dev and static builds.
-- If you ever see a playground 404 after changes, run:
-
-```bash
-pnpm run build
-pnpm run docs:sync-playground-assets
-pnpm run docs:build
-```
